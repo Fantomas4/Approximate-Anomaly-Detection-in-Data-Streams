@@ -23,10 +23,9 @@ package algorithms;
 import algorithms.mtree.*;
 import algorithms.mtree.utils.Pair;
 import algorithms.mtree.utils.Utils;
-
 import java.util.Set;
 
-class MTreeMicroClusters extends MTree<MicroCluster> {
+public class MTreeMicroClusters extends MTree<MicroCluster> {
 
     private static final PromotionFunction<MicroCluster> nonRandomPromotion = new PromotionFunction<MicroCluster>() {
 
@@ -36,7 +35,7 @@ class MTreeMicroClusters extends MTree<MicroCluster> {
         }
     };
 
-    MTreeMicroClusters() {
+    public MTreeMicroClusters() {
         super(2, DistanceFunctions.EUCLIDEAN,
                 new ComposedSplitFunction<MicroCluster>(
                 nonRandomPromotion,

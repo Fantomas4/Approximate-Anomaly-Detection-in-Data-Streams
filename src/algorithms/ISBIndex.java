@@ -154,7 +154,7 @@ public class ISBIndex {
         return nObjects;
     }
 
-    Vector<ISBNode> GetAllNodes() {
+    public Vector<ISBNode> GetAllNodes() {
         Vector<ISBNode> v = new Vector<ISBNode>(); 
         Iterator it = mapNodes.entrySet().iterator();
         while (it.hasNext()) {

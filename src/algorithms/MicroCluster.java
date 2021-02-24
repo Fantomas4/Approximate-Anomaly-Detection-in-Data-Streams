@@ -22,24 +22,25 @@ package algorithms;
 
 
 import algorithms.mtree.DistanceFunctions;
+import algorithms.ISBIndex.ISBNode;
 import java.util.ArrayList;
 
 public class MicroCluster implements DistanceFunctions.EuclideanCoordinate, Comparable<MicroCluster> {
-    public ISBIndex.ISBNode mcc;
-    public ArrayList<ISBIndex.ISBNode> nodes;
+    public ISBNode mcc;
+    public ArrayList<ISBNode> nodes;
 
-    public MicroCluster(ISBIndex.ISBNode mcc) {
+    public MicroCluster(ISBNode mcc) {
         this.mcc = mcc;
-        nodes = new ArrayList<ISBIndex.ISBNode>();
+        nodes = new ArrayList<ISBNode>();
         AddNode(mcc);
     }
     
-    public void AddNode(ISBIndex.ISBNode node) {
+    public void AddNode(ISBNode node) {
         if (node != null)
             nodes.add(node);
     }
     
-    public void RemoveNode(ISBIndex.ISBNode node) {
+    public void RemoveNode(ISBNode node) {
         if (node != null)
             nodes.remove(node);
     }
