@@ -44,7 +44,6 @@ public class OutlierDetector {
         }
     }
 
-    public IntOption windowSizeOption = new IntOption("windowSize", 'w', "Size of the window.", 1000);
 
     public OutlierNotifier outlierNotifier = null;
 

@@ -16,8 +16,9 @@
 
 package algorithms.mtree;
 
-import moa.clusterers.outliers.utils.mtree.utils.Pair;
-import moa.clusterers.outliers.utils.mtree.utils.Utils;
+
+import algorithms.mtree.utils.Pair;
+import algorithms.mtree.utils.Utils;
 
 import java.util.List;
 import java.util.Set;
@@ -42,8 +43,7 @@ public final class PromotionFunctions {
 	 */
 	public static class RandomPromotion<DATA> implements PromotionFunction<DATA> {
 		@Override
-		public Pair<DATA> process(Set<DATA> dataSet,
-				DistanceFunction<? super DATA> distanceFunction)
+		public Pair<DATA> process(Set<DATA> dataSet, DistanceFunction<? super DATA> distanceFunction)
 		{
 			List<DATA> promotedList = Utils.randomSample(dataSet, 2);
 			return new Pair<DATA>(promotedList.get(0), promotedList.get(1));
