@@ -20,7 +20,9 @@ public class Stream {
 
     public ArrayList<StreamObj> getIncomingData(int length) {
         ArrayList<StreamObj> results = new ArrayList<>();
-        for (int i = 0; i < length; i++) {
+
+        int dataSize = Math.min(dataStream.size(), length);
+        for (int i = 0; i < dataSize; i++) {
             results.add(this.dataStream.remove());
         }
 
