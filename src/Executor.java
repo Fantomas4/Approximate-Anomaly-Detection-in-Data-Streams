@@ -35,8 +35,12 @@ public class Executor {
         if (chosenAlgorithm.equals("MCOD")) {
             mcodObj = new MCOD(windowSize, slideSize, rParameter, kParameter);
         }
+    }
 
-
+    public void performOutlierDetection() {
+        while (stream.hasNext()) {
+            addNewStreamObjects();
+        }
     }
 
     private void readArguments(String[] args) {
@@ -72,7 +76,7 @@ public class Executor {
     public void addNewStreamObjects() {
         Long nsNow = System.nanoTime();
 
-        ProcessNewStreamObjects(stream.getIncomingData(slideSize));
+        mcodObj.ProcessNewStreamObjects(stream.getIncomingData(slideSize));
 
         UpdateMaxMemUsage();
         nTotalRunTime += (System.nanoTime() - nsNow) / (1024 * 1024);
@@ -109,11 +113,6 @@ public class Executor {
         System.out.println("  Total process time: " + String.format("%.2f ms", nTotalRunTime / 1000.0) + "\n");
     }
 
-    private void ShowTimePerObj() {
-        double ms = nTimePerObj / (1000.0 * 1000.0);
-        System.out.println("Process time per object (ms): " + String.format("%.3f", ms));
-    }
-
     protected void UpdateMaxMemUsage() {
         int x = GetMemoryUsage();
         if (iMaxMemUsage < x) iMaxMemUsage = x;
@@ -123,4 +122,9 @@ public class Executor {
         return iMemory;
     }
 
+    public static void main(String[] args) {
+        Executor executor = new Executor(args);
+        executor.performOutlierDetection();
+        executor.printResults();
+    }
 }

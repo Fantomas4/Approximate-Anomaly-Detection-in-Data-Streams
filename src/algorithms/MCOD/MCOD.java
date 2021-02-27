@@ -284,7 +284,7 @@ public class MCOD extends MCODBase {
         }
     }
 
-    protected void ProcessNewStreamObjects(ArrayList<StreamObj> streamObjs) {
+    public void ProcessNewStreamObjects(ArrayList<StreamObj> streamObjs) {
         // Process expired nodes
         ProcessExpiredNodes(GetExpiredNodes());
 
