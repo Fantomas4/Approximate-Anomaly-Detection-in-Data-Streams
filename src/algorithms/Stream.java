@@ -25,20 +25,22 @@ public class Stream {
         }
 
         return results;
-
     }
 
-    public void loadFile(String filename) {
-
+    public void loadFile(String filename, boolean containsClass) {
         try {
             BufferedReader bfr = new BufferedReader(new FileReader(filename));
-
             String line;
             try {
                 while ((line = bfr.readLine()) != null) {
-
                     String[] atts = line.split(",");
-                    double[] d = new double[atts.length];
+                    int nAttributes;
+                    if (containsClass) {
+                        nAttributes = atts.length - 1;
+                    } else {
+                        nAttributes = atts.length;
+                    }
+                    double[] d = new double[nAttributes];
                     for (int i = 0; i < d.length; i++) {
 
                         d[i] = Double.parseDouble(atts[i]);
@@ -54,13 +56,12 @@ public class Stream {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-
     }
 
 
     public static void main(String[] args) {
         Stream stream = new Stream();
-        stream.loadFile("G:\\IdeaProjects\\MCOD-ApproxMCOD\\datasets\\tao.txt");
+        stream.loadFile("G:\\IdeaProjects\\MCOD-ApproxMCOD\\datasets\\tao.txt", false);
         System.out.println("done");
     }
 

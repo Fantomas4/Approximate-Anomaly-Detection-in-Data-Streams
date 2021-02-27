@@ -19,6 +19,7 @@ public class Executor {
     private double rParameter;
     private int kParameter;
     private String dataFile;
+    private boolean containsClass;
 
     private Stream stream;
     private MCOD mcodObj;
@@ -31,7 +32,7 @@ public class Executor {
 
         readArguments(args);
         stream = new Stream();
-        stream.loadFile(dataFile);
+        stream.loadFile(dataFile, containsClass);
         if (chosenAlgorithm.equals("MCOD")) {
             mcodObj = new MCOD(windowSize, slideSize, rParameter, kParameter);
         }
@@ -67,6 +68,9 @@ public class Executor {
                         break;
                     case "--datafile":
                         this.dataFile = args[i + 1];
+                        break;
+                    case "--containsClass":
+                        this.containsClass = Boolean.parseBoolean(args[i + 1]);
                         break;
                 }
             }
