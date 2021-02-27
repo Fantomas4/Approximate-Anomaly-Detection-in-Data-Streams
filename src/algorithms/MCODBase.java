@@ -112,6 +112,7 @@ public class MCODBase extends OutlierDetector {
 
         System.out.println("Init MCOD:");
         System.out.println("   window_size: " + windowSize);
+        System.out.println("   slide_size: " + slideSize);
         System.out.println("   radius: " + m_radius);
         System.out.println("   k: " + m_k);
 
