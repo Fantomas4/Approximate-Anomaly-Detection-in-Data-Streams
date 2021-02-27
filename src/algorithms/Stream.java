@@ -6,8 +6,8 @@ import java.util.*;
 
 
 public class Stream {
-
     private final Queue<StreamObj> dataStream;
+
 
     public Stream() {
         dataStream = new ArrayDeque<StreamObj>();

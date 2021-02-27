@@ -21,96 +21,14 @@
 package algorithms.MCOD;
 
 
-import algorithms.ISBIndex;
+import algorithms.*;
 import algorithms.ISBIndex.ISBNode;
 import algorithms.ISBIndex.ISBSearchResult;
 import algorithms.ISBIndex.ISBNode.NodeType;
-import algorithms.MTreeMicroClusters;
-import algorithms.MicroCluster;
-import algorithms.StreamObj;
 
 import java.util.*;
 
-public abstract class MCOD {
-    protected static class EventItem implements Comparable<EventItem> {
-        public ISBNode node;
-        public Long timeStamp;
-
-        public EventItem(ISBNode node, Long timeStamp) {
-            this.node = node;
-            this.timeStamp = timeStamp;
-        }
-
-        @Override
-        public int compareTo(EventItem t) {
-            if (this.timeStamp > t.timeStamp) {
-                return +1;
-            } else if (this.timeStamp < t.timeStamp) {
-                return -1;
-            } else {
-                if (this.node.id > t.node.id)
-                    return +1;
-                else if (this.node.id < t.node.id)
-                    return -1;
-            }
-            return 0;
-        }
-    }
-
-    protected static class EventQueue {
-        public TreeSet<EventItem> setEvents;
-
-        public EventQueue() {
-            setEvents = new TreeSet<EventItem>();
-        }
-
-        public void Insert(ISBNode node, Long expTime) {
-            setEvents.add(new EventItem(node, expTime));
-        }
-
-        public EventItem FindMin() {
-            if (setEvents.size() > 0) {
-                // events are sorted ascenting by expiration time
-                return setEvents.first();
-            }
-            return null;
-        }
-
-        public EventItem ExtractMin() {
-            EventItem e = FindMin();
-            if (e != null) {
-                setEvents.remove(e);
-                return e;
-            }
-            return null;
-        }
-    }
-
-    protected static final Long FIRST_OBJ_ID = 1L;
-
-    // object identifier increments with each new data stream object
-    protected Long objId;
-    // list used to find expired nodes
-    protected Vector<ISBNode> windowNodes;
-    protected EventQueue eventQueue;
-    // MTree index of micro-clusters
-    protected MTreeMicroClusters mtreeMC;
-    // set of micro-clusters (for trace)
-    protected TreeSet<MicroCluster> setMC;
-    // nodes treated as new nodes when a mc removed
-    protected TreeSet<ISBNode> nodesReinsert;
-    // index of objects not in any micro-cluster
-    protected ISBIndex ISB_PD;
-    protected int m_WindowSize;
-    protected double m_radius;
-    protected int m_k;
-    protected double m_theta = 1.0;
-
-    // statistics
-    public int m_nBothInlierOutlier;
-    public int m_nOnlyInlier;
-    public int m_nOnlyOutlier;
-
+public class MCOD extends MCODBase {
     // DIAG ONLY -- DELETE
     int diagExactMCCount = 0;
     int diagDiscardedMCCount = 0;
@@ -118,42 +36,8 @@ public abstract class MCOD {
     int diagAdditionsToPD = 0;
     int diagSafeInliersCount = 0;
 
-    public MCOD(int windowSize, double radius, int k) {
-        m_WindowSize = windowSize;
-        m_radius = radius;
-        m_k = k;
-
-        System.out.println("Init MCOD:");
-        System.out.println("   window_size: " + m_WindowSize);
-        System.out.println("   radius: " + m_radius);
-        System.out.println("   k: " + m_k);
-
-
-        objId = FIRST_OBJ_ID; // init object identifier
-        // create nodes list of window
-        windowNodes = new Vector<ISBNode>();
-        // create ISB
-        ISB_PD = new ISBIndex(m_radius, m_k);
-        // create helper sets for micro-cluster management
-        setMC = new TreeSet<MicroCluster>();
-        // micro-cluster index
-        mtreeMC = new MTreeMicroClusters();
-        // create event queue
-        eventQueue = new EventQueue();
-
-        // init statistics
-        m_nBothInlierOutlier = 0;
-        m_nOnlyInlier = 0;
-        m_nOnlyOutlier = 0;
-    }
-
-    void SetNodeType(ISBNode node, NodeType type) {
-        node.nodeType = type;
-        // update statistics
-        if (type == NodeType.OUTLIER)
-            node.nOutlier++;
-        else
-            node.nInlier++;
+    public MCOD(int windowSize, int slideSize, double radius, int k) {
+        super(windowSize, slideSize, radius, k);
     }
 
     void AddNeighbor(ISBNode node, ISBNode q, boolean bUpdateState) {
@@ -170,25 +54,20 @@ public abstract class MCOD {
 
         if (bUpdateState) {
             // check if node inlier or outlier
-            int count = node.count_after + node.CountPrecNeighs(GetWindowStart());
+            int count = node.count_after + node.CountPrecNeighs(windowStart);
             if ((node.nodeType == NodeType.OUTLIER) && (count >= m_k)) {
                 // remove node from outliers
                 RemoveOutlier(node);
                 // add node to inlier set PD
                 SetNodeType(node, NodeType.INLIER_PD);
                 // insert node to event queue
-                ISBNode nodeMinExp = node.GetMinPrecNeigh(GetWindowStart());
+                ISBNode nodeMinExp = node.GetMinPrecNeigh(windowStart);
                 AddToEventQueue(node, nodeMinExp);
             }
         }
     }
 
-    void AddToEventQueue(ISBNode x, ISBNode nodeMinExp) {
-        if (nodeMinExp != null) {
-            Long expTime = GetExpirationTime(nodeMinExp);
-            eventQueue.Insert(x, expTime);
-        }
-    }
+
 
     void ProcessNewNode(ISBNode nodeNew, boolean bNewNode) {
         // Perform 3R/2 range query to cluster centers w.r.t new node
@@ -315,12 +194,12 @@ public abstract class MCOD {
 
                 // check if nodeNew is an inlier or outlier
                 // use both nn_before and count_after for case bNewNode=false
-                int count = nodeNew.CountPrecNeighs(GetWindowStart()) + nodeNew.count_after;
+                int count = nodeNew.CountPrecNeighs(windowStart) + nodeNew.count_after;
                 if (count >= m_k) {
                     // nodeNew is an inlier
                     SetNodeType(nodeNew, NodeType.INLIER_PD);
                     // insert nodeNew to event queue
-                    ISBNode nodeMinExp = nodeNew.GetMinPrecNeigh(GetWindowStart());
+                    ISBNode nodeMinExp = nodeNew.GetMinPrecNeigh(windowStart);
                     AddToEventQueue(nodeNew, nodeMinExp);
                 } else {
                     // nodeNew is an outlier
@@ -341,7 +220,7 @@ public abstract class MCOD {
         diagSafeInliersCount = 0;
 
         EventItem e = eventQueue.FindMin();
-        while ((e != null) && (e.timeStamp <= GetWindowEnd())) {
+        while ((e != null) && (e.timeStamp <= windowEnd)) {
             e = eventQueue.ExtractMin();
             ISBNode x = e.node;
             // node x must be in window and not in any micro-cluster
@@ -350,7 +229,7 @@ public abstract class MCOD {
                 // remove nodeExpired from x.nn_before
                 x.RemovePrecNeigh(nodeExpired);
                 // get amount of neighbors of x
-                int count = x.count_after + x.CountPrecNeighs(GetWindowStart());
+                int count = x.count_after + x.CountPrecNeighs(windowStart);
                 if (count < m_k) {
                     // x is an outlier
                     SetNodeType(x, NodeType.OUTLIER);
@@ -361,7 +240,7 @@ public abstract class MCOD {
                     if (x.count_after >= m_k) diagSafeInliersCount++;
 
                     // get oldest preceding neighbor of x
-                    ISBNode nodeMinExp = x.GetMinPrecNeigh(GetWindowStart());
+                    ISBNode nodeMinExp = x.GetMinPrecNeigh(windowStart);
                     // add x to event queue
                     AddToEventQueue(x, nodeMinExp);
                 }
@@ -370,11 +249,11 @@ public abstract class MCOD {
         }
     }
 
-    void RemoveExpiredNodes(ISBNode nodeExpired) {
-        if (nodeExpired != null) {
-            MicroCluster mc = nodeExpired.mc;
+    void ProcessExpiredNodes(ArrayList<ISBNode> expiredNodes) {
+        for (ISBNode expiredNode : expiredNodes) {
+            MicroCluster mc = expiredNode.mc;
             if (mc != null) {
-                mc.RemoveNode(nodeExpired);
+                mc.RemoveNode(expiredNode);
                 if (mc.GetNodesCount() < m_k) {
                     // DIAG ONLY -- DELETE
                     diagDiscardedMCCount ++;
@@ -395,20 +274,21 @@ public abstract class MCOD {
                     }
                 }
             } else {
-                // nodeExpired belongs to set PD
-                // remove nodeExpired from PD index
-                ISB_PD.Remove(nodeExpired);
+                // expiredNode belongs to set PD
+                // remove expiredNode from PD index
+                ISB_PD.Remove(expiredNode);
             }
 
-            RemoveNode(nodeExpired);
-            ProcessEventQueue(nodeExpired);
+            RemoveNode(expiredNode);
+            ProcessEventQueue(expiredNode);
         }
     }
 
-    protected void ProcessNewStreamObjects(ArrayList<StreamObj> streamObjs)
-    {
-        RemoveExpiredNodes();
+    protected void ProcessNewStreamObjects(ArrayList<StreamObj> streamObjs) {
+        // Process expired nodes
+        ProcessExpiredNodes(GetExpiredNodes());
 
+        // Process new nodes
         for (StreamObj streamObj : streamObjs) {
             ISBNode nodeNew = new ISBNode(streamObj, objId); // create new ISB node
             AddNode(nodeNew); // add nodeNew to window
@@ -416,6 +296,9 @@ public abstract class MCOD {
 
             objId++; // update object identifier
         }
+
+        // Perform a slide
+        doSlide();
 
         // DIAG ONLY -- DELETE
         System.out.println("-------------------- MCOD baseline --------------------");
@@ -426,160 +309,20 @@ public abstract class MCOD {
         System.out.println("DIAG - #Safe inliers detected: " + diagSafeInliersCount);
         System.out.println("DIAG - Total -ACTIVE- MCs: " + setMC.size());
         System.out.println("DIAG - Total -ACTIVE- PD List Population: " + ISB_PD.GetSize());
-        System.out.println("DIAG - Process time (until now): " + nTotalRunTime / 1000.0);
         System.out.println("-------------------------------------------------------");
     }
 
-
-
-
-
-
-
-    public String getObjectInfo(Object obj) {
-        if (obj == null) return null;
-
-        ISBNode node = (ISBNode) obj;
-
-        ArrayList<String> infoTitle = new ArrayList<String>();
-        ArrayList<String> infoValue = new ArrayList<String>();
-        StringBuilder sb = new StringBuilder();
-
-        // show node type
-        infoTitle.add("Node type");
-        infoValue.add((node.nodeType == NodeType.OUTLIER) ? "Outlier" : "Inlier");
-
-        // show node position
-        for (int i = 0; i < node.obj.dimensions(); i++) {
-            infoTitle.add("Dim" + (i+1));
-            infoValue.add(String.format("%.3f", node.obj.get(i)));
-        }
-
-        // show node properties
-        infoTitle.add("id");
-        infoValue.add(String.format("%d", node.id));
-        infoTitle.add("count_after");
-        infoValue.add(String.format("%d", node.count_after));
-        infoTitle.add("|nn_before|");
-        infoValue.add(String.format("%d", node.CountPrecNeighs(GetWindowStart())));
-
-        sb.append("<html>");
-        sb.append("<table>");
-        int i = 0;
-        while(i < infoTitle.size() && i < infoValue.size()){
-            sb.append("<tr><td><b>"+infoTitle.get(i)+":</b></td><td>"+infoValue.get(i)+"</td></tr>");
-            i++;
-        }
-        sb.append("</table>");
-
-
-        sb.append("</html>");
-        return sb.toString();
-    }
-
-    public String getStatistics() {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append("Statistics:\n\n");
-
-        // get counters of expired nodes
-        int nBothInlierOutlier = m_nBothInlierOutlier;
-        int nOnlyInlier = m_nOnlyInlier;
-        int nOnlyOutlier = m_nOnlyOutlier;
-
-        // add counters of non expired nodes
+    ArrayList<ISBNode> GetExpiredNodes() {
+        ArrayList<ISBNode> expiredNodes = new ArrayList<>();
         for (ISBNode node : windowNodes) {
-            if ((node.nInlier > 0) && (node.nOutlier > 0))
-                nBothInlierOutlier++;
-            else if (node.nInlier > 0)
-                nOnlyInlier++;
-            else
-                nOnlyOutlier++;
+            // check if node has expired
+            if (node.id < windowStart) {
+                expiredNodes.add(node);
+            } else {
+                break;
+            }
         }
-
-        int sum = nBothInlierOutlier + nOnlyInlier + nOnlyOutlier;
-        if (sum > 0) {
-            sb.append(String.format("  Nodes always inlier: %d (%.1f%%)\n", nOnlyInlier, (100 * nOnlyInlier) / (double)sum));
-            sb.append(String.format("  Nodes always outlier: %d (%.1f%%)\n", nOnlyOutlier, (100 * nOnlyOutlier) / (double)sum));
-            sb.append(String.format("  Nodes both inlier and outlier: %d (%.1f%%)\n", nBothInlierOutlier, (100 * nBothInlierOutlier) / (double)sum));
-
-            sb.append("  (Sum: " + sum + ")\n");
-        }
-
-        sb.append("\n  Total range queries: " + nRangeQueriesExecuted + "\n");
-        sb.append("  Max memory usage: " + iMaxMemUsage + " MB\n");
-        sb.append("  Total process time: " + String.format("%.2f ms", nTotalRunTime / 1000.0) + "\n");
-
-        return sb.toString();
-    }
-
-    Long GetWindowEnd() {
-        return objId - 1;
-    }
-
-    Long GetWindowStart() {
-        Long x = GetWindowEnd() - m_WindowSize + 1;
-        if (x < FIRST_OBJ_ID)
-            x = FIRST_OBJ_ID;
-        return x;
-    }
-
-    boolean IsWinFull() {
-        return (GetWindowEnd() >= FIRST_OBJ_ID + m_WindowSize - 1);
-    }
-
-    Long GetExpirationTime(ISBNode node) {
-        return node.id + m_WindowSize;
-    }
-
-    void SaveOutlier(ISBNode node) {
-        AddOutlier(new Outlier(node.inst, node.id, node));
-        node.nOutlier++; // update statistics
-    }
-
-    void RemoveOutlier(ISBNode node) {
-        RemoveOutlier(new Outlier(node.inst, node.id, node));
-        node.nInlier++; // update statistics
-    }
-
-    protected boolean IsNodeIdInWin(long id) {
-        int toleranceStart = 1;
-        Long start = GetWindowStart() - toleranceStart;
-        if ( (start <= id) && (id <= GetWindowEnd()) )
-            return true;
-        else
-            return false;
-    }
-
-    void AddNode(ISBNode node) {
-        windowNodes.add(node);
-    }
-
-    void RemoveNode(ISBNode node) {
-        windowNodes.remove(node);
-        // update statistics
-        UpdateStatistics(node);
-    }
-
-    void UpdateStatistics(ISBNode node) {
-        if ((node.nInlier > 0) && (node.nOutlier > 0))
-            m_nBothInlierOutlier++;
-        else if (node.nInlier > 0)
-            m_nOnlyInlier++;
-        else
-            m_nOnlyOutlier++;
-    }
-
-    ISBNode GetExpiredNode() {
-        if (windowNodes.size() <= 0)
-            return null;
-        // get oldest node
-        ISBNode node = windowNodes.get(0);
-        // check if node has expired
-        if (node.id < GetWindowStart()) {
-            return node;
-        }
-        return null;
+        return expiredNodes;
     }
 
     void AddMicroCluster(MicroCluster mc) {
@@ -591,39 +334,4 @@ public abstract class MCOD {
         mtreeMC.remove(mc);
         setMC.remove(mc);
     }
-
-    class SearchResultMC {
-        MicroCluster mc;
-        double distance;
-
-        public SearchResultMC(MicroCluster mc, double distance) {
-            this.mc = mc;
-            this.distance = distance;
-        }
-    }
-
-    Vector<SearchResultMC> RangeSearchMC(ISBNode nodeNew, double radius) {
-        Vector<SearchResultMC> results = new Vector<SearchResultMC>();
-        // create a dummy mc in order to search w.r.t. nodeNew
-        MicroCluster dummy = new MicroCluster(nodeNew);
-        // query results are returned ascending by distance
-        MTreeMicroClusters.Query query = mtreeMC.getNearestByRange(dummy, radius);
-        for (MTreeMicroClusters.ResultItem q : query) {
-            results.add(new SearchResultMC(q.data, q.distance));
-        }
-        return results;
-    }
-
-    double GetEuclideanDist(ISBNode n1, ISBNode n2)
-    {
-        double diff;
-        double sum = 0;
-        int d = n1.obj.dimensions();
-        for (int i = 0; i < d; i++) {
-            diff = n1.obj.get(i) - n2.obj.get(i);
-            sum += Math.pow(diff, 2);
-        }
-        return Math.sqrt(sum);
-    }
-
 }
