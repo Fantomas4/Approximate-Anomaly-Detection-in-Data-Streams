@@ -67,8 +67,6 @@ public class MCOD extends MCODBase {
         }
     }
 
-
-
     void ProcessNewNode(ISBNode nodeNew, boolean bNewNode) {
         // Perform 3R/2 range query to cluster centers w.r.t new node
         Vector<SearchResultMC> resultsMC;
@@ -312,7 +310,7 @@ public class MCOD extends MCODBase {
         System.out.println("-------------------------------------------------------");
     }
 
-    ArrayList<ISBNode> GetExpiredNodes() {
+    private ArrayList<ISBNode> GetExpiredNodes() {
         ArrayList<ISBNode> expiredNodes = new ArrayList<>();
         for (ISBNode node : windowNodes) {
             // check if node has expired
