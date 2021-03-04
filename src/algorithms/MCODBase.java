@@ -174,8 +174,7 @@ public class MCODBase extends OutlierDetector {
     }
 
     protected boolean IsNodeIdInWin(long id) {
-        int toleranceStart = 1;
-        Long start = windowStart - toleranceStart;
+        Long start = windowStart;
         if ( (start <= id) && (id <= windowEnd) )
             return true;
         else
