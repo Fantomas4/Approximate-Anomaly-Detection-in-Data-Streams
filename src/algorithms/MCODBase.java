@@ -1,10 +1,12 @@
 package algorithms;
 
-import algorithms.MCOD.MCOD;
-import outliers.Outlier;
-import outliers.OutlierDetector;
-import algorithms.ISBIndex.ISBNode;
-import java.util.ArrayList;
+import core.ISBIndex;
+import core.MTreeMicroClusters;
+import core.MicroCluster;
+import core.Outlier;
+import core.OutlierDetector;
+import core.ISBIndex.ISBNode;
+
 import java.util.HashMap;
 import java.util.TreeSet;
 import java.util.Vector;

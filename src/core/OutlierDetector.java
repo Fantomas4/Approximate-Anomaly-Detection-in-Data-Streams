@@ -1,4 +1,4 @@
-package outliers;
+package core;
 
 
 import java.util.Set;

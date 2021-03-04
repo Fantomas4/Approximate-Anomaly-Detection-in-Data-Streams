@@ -1,6 +1,6 @@
-package outliers;
+package core;
 
-import algorithms.ISBIndex.ISBNode;
+import core.ISBIndex.ISBNode;
 
 public class Outlier implements Comparable<Outlier> {
     public long id;

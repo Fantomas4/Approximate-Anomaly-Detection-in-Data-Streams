@@ -1,7 +1,5 @@
-import algorithms.ISBIndex;
-import algorithms.MCOD.MCOD;
-import algorithms.Stream;
-import outliers.OutlierDetector;
+import algorithms.MCOD;
+import core.Stream;
 
 import java.util.HashMap;
 

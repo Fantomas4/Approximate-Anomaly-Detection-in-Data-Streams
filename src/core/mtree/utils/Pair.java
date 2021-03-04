@@ -14,7 +14,7 @@
  *    
  */
 
-package algorithms.mtree.utils;
+package core.mtree.utils;
 
 /**
  * A pair of objects of the same type.

@@ -18,7 +18,7 @@
  *    
  */
 
-package algorithms;
+package core;
 
 
 import java.util.*;

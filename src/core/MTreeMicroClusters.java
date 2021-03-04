@@ -18,11 +18,11 @@
  *    
  */
 
-package algorithms;
+package core;
 
-import algorithms.mtree.*;
-import algorithms.mtree.utils.Pair;
-import algorithms.mtree.utils.Utils;
+import core.mtree.*;
+import core.mtree.utils.Pair;
+import core.mtree.utils.Utils;
 import java.util.Set;
 
 public class MTreeMicroClusters extends MTree<MicroCluster> {

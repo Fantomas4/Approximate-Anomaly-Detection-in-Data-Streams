@@ -14,7 +14,7 @@
  *    
  */
 
-package algorithms.mtree.utils;
+package core.mtree.utils;
 
 import java.util.*;
 

@@ -14,11 +14,11 @@
  *    
  */
 
-package algorithms.mtree;
+package core.mtree;
 
 
-import algorithms.mtree.utils.Pair;
-import algorithms.mtree.utils.Utils;
+import core.mtree.utils.Pair;
+import core.mtree.utils.Utils;
 
 import java.util.List;
 import java.util.Set;

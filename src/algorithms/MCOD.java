@@ -18,13 +18,14 @@
  *
  */
 
-package algorithms.MCOD;
+package algorithms;
 
 
-import algorithms.*;
-import algorithms.ISBIndex.ISBNode;
-import algorithms.ISBIndex.ISBSearchResult;
-import algorithms.ISBIndex.ISBNode.NodeType;
+import core.ISBIndex.ISBNode;
+import core.ISBIndex.ISBSearchResult;
+import core.ISBIndex.ISBNode.NodeType;
+import core.MicroCluster;
+import core.StreamObj;
 
 import java.util.*;
 
