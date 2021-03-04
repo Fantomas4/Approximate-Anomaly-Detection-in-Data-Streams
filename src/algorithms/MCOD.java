@@ -284,8 +284,12 @@ public class MCOD extends MCODBase {
     }
 
     public void ProcessNewStreamObjects(ArrayList<StreamObj> streamObjs) {
-        // Process expired nodes
-        ProcessExpiredNodes(GetExpiredNodes());
+        if (windowNodes.size() == windowSize) {
+            // If the window is full, perform a slide
+            doSlide();
+            // Process expired nodes
+            ProcessExpiredNodes(GetExpiredNodes());
+        }
 
         // Process new nodes
         for (StreamObj streamObj : streamObjs) {
@@ -296,8 +300,6 @@ public class MCOD extends MCODBase {
             objId++; // update object identifier
         }
 
-        // Perform a slide
-        doSlide();
 
         // DIAG ONLY -- DELETE
         System.out.println("-------------------- MCOD baseline --------------------");

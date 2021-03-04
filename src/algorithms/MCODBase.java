@@ -157,10 +157,8 @@ public class MCODBase extends OutlierDetector {
     }
 
     protected void doSlide() {
-        if (windowNodes.size() > windowSize) {
-            windowStart += slideSize;
-            windowEnd += slideSize;
-        }
+        windowStart += slideSize;
+        windowEnd += slideSize;
     }
 
     protected void SaveOutlier(ISBIndex.ISBNode node) {
