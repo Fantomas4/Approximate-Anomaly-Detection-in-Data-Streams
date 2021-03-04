@@ -303,6 +303,7 @@ public class MCOD extends MCODBase {
 
         // DIAG ONLY -- DELETE
         System.out.println("-------------------- MCOD baseline --------------------");
+        System.out.println("DIAG - Current stream object: " + Long.toString(objId - 1));
         System.out.println("DIAG - Total Exact MCs count: " + diagExactMCCount);
         System.out.println("DIAG - Total Discarded MCs: " + diagDiscardedMCCount);
         System.out.println("DIAG - #Times a point was added to an MC: " + diagAdditionsToMC);
