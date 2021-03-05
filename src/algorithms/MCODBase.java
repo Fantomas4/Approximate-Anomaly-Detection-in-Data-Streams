@@ -162,12 +162,10 @@ public class MCODBase extends OutlierDetector {
     }
 
     protected void SaveOutlier(ISBIndex.ISBNode node) {
-        AddOutlier(new Outlier(node));
         node.nOutlier++; // update statistics
     }
 
     protected void RemoveOutlier(ISBIndex.ISBNode node) {
-        RemoveOutlier(new Outlier(node));
         node.nInlier++; // update statistics
     }
 
@@ -187,6 +185,9 @@ public class MCODBase extends OutlierDetector {
         windowNodes.remove(node);
         // update statistics
         UpdateStatistics(node);
+        // Check whether the node should be recorded as a pure outlier
+        // by the outlier detector
+        evaluateAsOutlier(node);
     }
 
     protected void UpdateStatistics(ISBIndex.ISBNode node) {

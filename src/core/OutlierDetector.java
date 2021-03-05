@@ -3,12 +3,11 @@ package core;
 
 import java.util.Set;
 import java.util.TreeSet;
+import core.ISBIndex.ISBNode;
 
 
 public class OutlierDetector {
-    private TreeSet<Outlier> outliersFound;
-
-
+    private final TreeSet<Outlier> outliersFound;
     protected int windowSize;
     protected int slideSize;
 
@@ -20,15 +19,21 @@ public class OutlierDetector {
         this.slideSize = slideSize;
     }
 
+    public void evaluateAsOutlier(ISBNode node) {
+        if (node.nOutlier > 0 && node.nInlier == 0) {
+            // node is a pure outlier, so we record it
+            recordOutlier(new Outlier(node));
+        }
+    }
+
+    private void recordOutlier(Outlier newOutlier) {
+        outliersFound.add(newOutlier);
+    }
+
     public Set<Outlier> GetOutliersFound() {
         return outliersFound;
     }
 
-    public void AddOutlier(Outlier newOutlier) {
-        outliersFound.add(newOutlier);
-    }
 
-    public void RemoveOutlier(Outlier outlier) {
-        outliersFound.remove(outlier);
-    }
+
 }
