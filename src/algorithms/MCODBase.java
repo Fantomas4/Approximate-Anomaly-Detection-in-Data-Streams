@@ -78,12 +78,8 @@ public class MCODBase extends OutlierDetector {
 
     protected int nRangeQueriesExecuted = 0;
 
-    protected static final Long FIRST_OBJ_ID = 1L;
-
     // object identifier increments with each new data stream object
     protected Long objId;
-    // list used to find expired nodes
-    protected Vector<ISBNode> windowNodes;
     protected EventQueue eventQueue;
     // MTree index of micro-clusters
     protected MTreeMicroClusters mtreeMC;
@@ -93,10 +89,7 @@ public class MCODBase extends OutlierDetector {
     protected TreeSet<ISBIndex.ISBNode> nodesReinsert;
     // index of objects not in any micro-cluster
     protected ISBIndex ISB_PD;
-    // ID indicating the window's starting object
-    protected Long windowStart = FIRST_OBJ_ID;
-    // ID indicating the window's ending object
-    protected Long windowEnd = (long) windowSize;
+
     protected double m_radius;
     protected int m_k;
     protected double m_theta = 1.0;
@@ -119,8 +112,6 @@ public class MCODBase extends OutlierDetector {
         System.out.println("   k: " + m_k);
 
         objId = FIRST_OBJ_ID; // init object identifier
-        // create nodes list of window
-        windowNodes = new Vector<ISBNode>();
         // create ISB
         ISB_PD = new ISBIndex(m_radius, m_k);
         // create helper sets for micro-cluster management
@@ -169,14 +160,6 @@ public class MCODBase extends OutlierDetector {
         node.nInlier++; // update statistics
     }
 
-    protected boolean IsNodeIdInWin(long id) {
-        Long start = windowStart;
-        if ( (start <= id) && (id <= windowEnd) )
-            return true;
-        else
-            return false;
-    }
-
     protected void AddNode(ISBIndex.ISBNode node) {
         windowNodes.add(node);
     }
@@ -197,12 +180,6 @@ public class MCODBase extends OutlierDetector {
             m_nOnlyInlier++;
         else
             m_nOnlyOutlier++;
-    }
-
-    public void evaluateRemainingNodesInWin() {
-        for (ISBNode node : windowNodes) {
-            evaluateAsOutlier(node);
-        }
     }
 
     public HashMap<String, Integer> getResults() {
