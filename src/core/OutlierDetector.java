@@ -10,6 +10,7 @@ public class OutlierDetector {
     private final TreeSet<Outlier> outliersFound;
     protected int windowSize;
     protected int slideSize;
+    protected int accessCount = 0; // DIAG ONLY -- DELETE!
 
 
     public OutlierDetector(int windowSize, int slideSize) {
@@ -20,6 +21,7 @@ public class OutlierDetector {
     }
 
     public void evaluateAsOutlier(ISBNode node) {
+        accessCount++;
         if (node.nOutlier > 0 && node.nInlier == 0) {
             // node is a pure outlier, so we record it
             recordOutlier(new Outlier(node));

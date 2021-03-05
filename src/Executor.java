@@ -40,6 +40,10 @@ public class Executor {
         while (stream.hasNext()) {
             addNewStreamObjects();
         }
+        // Evaluate the non-expired nodes still in the window in order to record
+        // the nodes that are pure outliers.
+        mcodObj.evaluateRemainingNodesInWin();
+        System.out.println("DIAG - TEMP OUTLIER SET SIZE: " + mcodObj.GetOutliersFound().size());
     }
 
     private void readArguments(String[] args) {

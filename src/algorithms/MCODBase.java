@@ -199,6 +199,12 @@ public class MCODBase extends OutlierDetector {
             m_nOnlyOutlier++;
     }
 
+    public void evaluateRemainingNodesInWin() {
+        for (ISBNode node : windowNodes) {
+            evaluateAsOutlier(node);
+        }
+    }
+
     public HashMap<String, Integer> getResults() {
         // get counters of expired nodes
         int nBothInlierOutlier = m_nBothInlierOutlier;

@@ -311,6 +311,9 @@ public class MCOD extends MCODBase {
         System.out.println("DIAG - #Safe inliers detected: " + diagSafeInliersCount);
         System.out.println("DIAG - Total -ACTIVE- MCs: " + setMC.size());
         System.out.println("DIAG - Total -ACTIVE- PD List Population: " + ISB_PD.GetSize());
+        System.out.println("DIAG - TEMP OUTLIER SET SIZE: " + GetOutliersFound().size());
+        System.out.println("DIAG - TEMP OUTLIER accessed: " + accessCount);
+        System.out.println("DIAG - TEMP Window size is: " + windowNodes.size());
         System.out.println("-------------------------------------------------------");
     }
 
