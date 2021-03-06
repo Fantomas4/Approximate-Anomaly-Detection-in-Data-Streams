@@ -18,7 +18,6 @@ public class OutlierDetector {
     private final TreeSet<Outlier> outliersFound;
     protected int windowSize;
     protected int slideSize;
-    protected int accessCount = 0;
     // list used to find expired nodes
     protected Vector<ISBNode> windowNodes;
 
@@ -30,7 +29,7 @@ public class OutlierDetector {
         windowNodes = new Vector<ISBNode>();
         this.windowStart = FIRST_OBJ_ID;
         this.windowEnd = (long) windowSize;
-
+        
         this.slideSize = slideSize;
 
     }

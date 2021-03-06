@@ -262,14 +262,22 @@ public class MCOD extends MCODBase {
 
                     // insert nodes of mc to set nodesReinsert
                     nodesReinsert = new TreeSet<ISBNode>();
+                    System.out.println("mc.nodes size 1: " + mc.nodes.size());
                     for (ISBNode q : mc.nodes) {
                         nodesReinsert.add(q);
                     }
 
+                    System.out.println("mc.nodes size 2: " + mc.nodes.size());
+                    System.out.println("MPHKAAAAAAAAAAAAAAAAAAAAA");
+                    System.out.println("mc.nodes size 3: " + mc.nodes.size());
                     // treat each node of mc as new node
                     for (ISBNode q : mc.nodes) {
+                        System.out.println("MPHKAAAA2222222222222222222222222");
+                        System.out.println("mc.nodes size 4: " + mc.nodes.size());
                         q.InitNode();
+                        System.out.println("mc.nodes size 5: " + mc.nodes.size());
                         ProcessNewNode(q, false);
+                        System.out.println("mc.nodes size 6: " + mc.nodes.size());
                     }
                 }
             } else {
@@ -312,7 +320,6 @@ public class MCOD extends MCODBase {
         System.out.println("DIAG - Total -ACTIVE- MCs: " + setMC.size());
         System.out.println("DIAG - Total -ACTIVE- PD List Population: " + ISB_PD.GetSize());
         System.out.println("DIAG - TEMP OUTLIER SET SIZE: " + GetOutliersFound().size());
-        System.out.println("DIAG - TEMP OUTLIER accessed: " + accessCount);
         System.out.println("DIAG - TEMP Window size is: " + windowNodes.size());
         System.out.println("-------------------------------------------------------");
     }
@@ -336,7 +343,7 @@ public class MCOD extends MCODBase {
     }
 
     void RemoveMicroCluster(MicroCluster mc) {
-        mtreeMC.remove(mc);
-        setMC.remove(mc);
+        System.out.println(mtreeMC.remove(mc));
+        System.out.println(setMC.remove(mc));
     }
 }
