@@ -144,7 +144,7 @@ public class MCODBase extends OutlierDetector {
     }
 
     protected Long GetExpirationTime(ISBNode node) {
-        return node.id + windowSize;
+        return node.id + windowSize + 1;
     }
 
     protected void doSlide() {
