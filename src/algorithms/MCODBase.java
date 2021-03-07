@@ -147,6 +147,16 @@ public class MCODBase extends OutlierDetector {
         return node.id + windowSize + 1;
     }
 
+    protected int getNodeSlide(ISBNode node) {
+        // Since node IDs begin from 1, we subtract 1 from the id so that the modulo
+        // operation always returns the correct slide the node belongs to.
+        long adjustedID = node.id - 1;
+
+        // The result is incremented by 1 since the slide index starts from 1.
+        return (int)(adjustedID / slideSize) + 1;
+
+    }
+
     protected void doSlide() {
         windowStart += slideSize;
         windowEnd += slideSize;
