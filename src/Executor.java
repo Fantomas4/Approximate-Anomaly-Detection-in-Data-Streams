@@ -1,3 +1,4 @@
+import algorithms.ApproxMCOD;
 import algorithms.MCOD;
 import core.Outlier;
 import core.Stream;
@@ -23,8 +24,14 @@ public class Executor {
     private String dataFile;
     private boolean containsClass;
 
+    // ApproxMCOD additional parameters
+    private int pdLimit;
+    private double arFactor;
+
     private Stream stream;
+
     private MCOD mcodObj;
+    private ApproxMCOD approxMCODObj;
 
 
     public Executor(String[] args) {
@@ -34,39 +41,6 @@ public class Executor {
 
         readArguments(args);
         stream = new Stream();
-        stream.loadFile(dataFile, containsClass);
-        if (chosenAlgorithm.equals("MCOD")) {
-            mcodObj = new MCOD(windowSize, slideSize, rParameter, kParameter);
-        }
-    }
-
-    public void performOutlierDetection() {
-        while (stream.hasNext()) {
-            addNewStreamObjects();
-        }
-        // Evaluate the non-expired nodes still in the window in order to record
-        // the nodes that are pure outliers.
-        mcodObj.evaluateRemainingNodesInWin();
-        exportOutliersToFile();
-        System.out.println("DIAG - TEMP OUTLIER SET SIZE: " + mcodObj.GetOutliersFound().size());
-    }
-
-    public void exportOutliersToFile() {
-        Set<Outlier> outliersDetected;
-        outliersDetected = mcodObj.GetOutliersFound();
-
-        try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter("outliers.txt"));
-
-            for (Outlier outlier : outliersDetected) {
-                bw.write(Long.toString(outlier.id));
-                bw.newLine();
-            }
-
-            bw.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     private void readArguments(String[] args) {
@@ -91,6 +65,12 @@ public class Executor {
                     case "--k":
                         this.kParameter = Integer.parseInt(args[i + 1]);
                         break;
+                    case "--pdLimit":
+                        this.pdLimit = Integer.parseInt(args[i + 1]);
+                        break;
+                    case "--arFactor":
+                        this.arFactor = Double.parseDouble(args[i + 1]);
+                        break;
                     case "--datafile":
                         this.dataFile = args[i + 1];
                         break;
@@ -102,21 +82,86 @@ public class Executor {
         }
     }
 
+    public void performOutlierDetection() {
+        // Load dataset file
+        stream.loadFile(dataFile, containsClass);
+
+        if (chosenAlgorithm.equals("MCOD")) {
+            mcodObj = new MCOD(windowSize, slideSize, rParameter, kParameter);
+        } else if (chosenAlgorithm.equals("ApproxMCOD")) {
+            approxMCODObj = new ApproxMCOD(windowSize, slideSize, rParameter, kParameter, pdLimit, arFactor);
+        }
+
+        while (stream.hasNext()) {
+            addNewStreamObjects();
+        }
+
+        // Evaluate the non-expired nodes still in the window in order to record
+        // the nodes that are pure outliers.
+        if (chosenAlgorithm.equals("MCOD")) {
+            mcodObj.evaluateRemainingNodesInWin();
+
+        } else if (chosenAlgorithm.equals("ApproxMCOD")) {
+            approxMCODObj.evaluateRemainingNodesInWin();
+
+        }
+
+        exportOutliersToFile();
+
+        System.out.println("DIAG - TEMP OUTLIER SET SIZE: " + mcodObj.GetOutliersFound().size());
+    }
+
     public void addNewStreamObjects() {
-        Long nsNow = System.nanoTime();
+        if (chosenAlgorithm.equals("MCOD")) {
+            Long nsNow = System.nanoTime();
 
-        mcodObj.ProcessNewStreamObjects(stream.getIncomingData(slideSize));
+            mcodObj.ProcessNewStreamObjects(stream.getIncomingData(slideSize));
 
-        UpdateMaxMemUsage();
-        nTotalRunTime += (System.nanoTime() - nsNow) / (1024 * 1024);
+            UpdateMaxMemUsage();
+            nTotalRunTime += (System.nanoTime() - nsNow) / (1024 * 1024);
 
-        // update process time per object
-        nProcessed++;
-        m_timePreObjSum += System.nanoTime() - nsNow;
-        if (nProcessed % m_timePreObjInterval == 0) {
-            nTimePerObj = ((double) m_timePreObjSum) / ((double) m_timePreObjInterval);
-            // init
-            m_timePreObjSum = 0L;
+            // update process time per object
+            nProcessed++;
+            m_timePreObjSum += System.nanoTime() - nsNow;
+            if (nProcessed % m_timePreObjInterval == 0) {
+                nTimePerObj = ((double) m_timePreObjSum) / ((double) m_timePreObjInterval);
+                // init
+                m_timePreObjSum = 0L;
+            }
+        } else if (chosenAlgorithm.equals("ApproxMCOD")) {
+            Long nsNow = System.nanoTime();
+
+            approxMCODObj.ProcessNewStreamObjects(stream.getIncomingData(slideSize));
+
+            UpdateMaxMemUsage();
+            nTotalRunTime += (System.nanoTime() - nsNow) / (1024 * 1024);
+
+            // update process time per object
+            nProcessed++;
+            m_timePreObjSum += System.nanoTime() - nsNow;
+            if (nProcessed % m_timePreObjInterval == 0) {
+                nTimePerObj = ((double) m_timePreObjSum) / ((double) m_timePreObjInterval);
+                // init
+                m_timePreObjSum = 0L;
+            }
+        }
+    }
+
+    public void exportOutliersToFile() {
+        Set<Outlier> outliersDetected;
+        outliersDetected = mcodObj.GetOutliersFound();
+
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter("outliers.txt"));
+
+            for (Outlier outlier : outliersDetected) {
+                bw.write(Long.toString(outlier.id));
+                bw.newLine();
+            }
+
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
