@@ -18,11 +18,11 @@
  *    
  */
 
-package algorithms;
+package core;
 
 
-import algorithms.mtree.DistanceFunctions;
-import algorithms.ISBIndex.ISBNode;
+import core.mtree.DistanceFunctions;
+import core.ISBIndex.ISBNode;
 import java.util.ArrayList;
 
 public class MicroCluster implements DistanceFunctions.EuclideanCoordinate, Comparable<MicroCluster> {

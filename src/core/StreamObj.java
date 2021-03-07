@@ -18,10 +18,10 @@
  *    
  */
 
-package algorithms;
+package core;
 
 
-import algorithms.mtree.DistanceFunctions;
+import core.mtree.DistanceFunctions;
 
 public class StreamObj implements DistanceFunctions.EuclideanCoordinate, Comparable<StreamObj> {
     private final double[] values;

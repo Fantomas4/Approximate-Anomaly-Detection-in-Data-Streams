@@ -18,13 +18,14 @@
  *
  */
 
-package algorithms.MCOD;
+package algorithms;
 
 
-import algorithms.*;
-import algorithms.ISBIndex.ISBNode;
-import algorithms.ISBIndex.ISBSearchResult;
-import algorithms.ISBIndex.ISBNode.NodeType;
+import core.ISBIndex.ISBNode;
+import core.ISBIndex.ISBSearchResult;
+import core.ISBIndex.ISBNode.NodeType;
+import core.MicroCluster;
+import core.StreamObj;
 
 import java.util.*;
 
@@ -46,11 +47,16 @@ public class MCOD extends MCODBase {
             return;
         }
 
-        if (q.id < node.id) {
-            node.AddPrecNeigh(q);
+        if (getNodeSlide(q) >= getNodeSlide(node)) {
+            node.count_after ++;
         } else {
-            node.count_after++;
+            node.AddPrecNeigh(q);
         }
+//        if (q.id < node.id) {
+//            node.AddPrecNeigh(q);
+//        } else {
+//            node.count_after++;
+//        }
 
         if (bUpdateState) {
             // check if node inlier or outlier
@@ -283,8 +289,12 @@ public class MCOD extends MCODBase {
     }
 
     public void ProcessNewStreamObjects(ArrayList<StreamObj> streamObjs) {
-        // Process expired nodes
-        ProcessExpiredNodes(GetExpiredNodes());
+        if (windowNodes.size() == windowSize) {
+            // If the window is full, perform a slide
+            doSlide();
+            // Process expired nodes
+            ProcessExpiredNodes(GetExpiredNodes());
+        }
 
         // Process new nodes
         for (StreamObj streamObj : streamObjs) {
@@ -295,11 +305,10 @@ public class MCOD extends MCODBase {
             objId++; // update object identifier
         }
 
-        // Perform a slide
-        doSlide();
 
         // DIAG ONLY -- DELETE
         System.out.println("-------------------- MCOD baseline --------------------");
+        System.out.println("DIAG - Current stream object: " + (objId - 1));
         System.out.println("DIAG - Total Exact MCs count: " + diagExactMCCount);
         System.out.println("DIAG - Total Discarded MCs: " + diagDiscardedMCCount);
         System.out.println("DIAG - #Times a point was added to an MC: " + diagAdditionsToMC);
@@ -307,6 +316,8 @@ public class MCOD extends MCODBase {
         System.out.println("DIAG - #Safe inliers detected: " + diagSafeInliersCount);
         System.out.println("DIAG - Total -ACTIVE- MCs: " + setMC.size());
         System.out.println("DIAG - Total -ACTIVE- PD List Population: " + ISB_PD.GetSize());
+        System.out.println("DIAG - TEMP OUTLIER SET SIZE: " + GetOutliersFound().size());
+        System.out.println("DIAG - TEMP Window size is: " + windowNodes.size());
         System.out.println("-------------------------------------------------------");
     }
 

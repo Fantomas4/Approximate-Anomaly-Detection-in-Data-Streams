@@ -14,7 +14,7 @@
  *    
  */
 
-package algorithms.mtree;
+package core.mtree;
 
 import java.util.HashMap;
 import java.util.List;

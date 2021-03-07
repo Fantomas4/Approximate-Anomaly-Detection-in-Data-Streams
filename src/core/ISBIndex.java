@@ -18,7 +18,7 @@
  *    
  */
 
-package algorithms;
+package core;
 
 
 import java.util.*;
@@ -56,7 +56,7 @@ public class ISBIndex {
         public void InitNode() {
             this.mc          = null;
             this.Rmc         = new TreeSet<MicroCluster>();
-            this.count_after = 1;
+            this.count_after = 0;
             this.nodeType    = NodeType.INLIER_PD;
             this.nn_before   = new ArrayList<ISBNode>();
         }

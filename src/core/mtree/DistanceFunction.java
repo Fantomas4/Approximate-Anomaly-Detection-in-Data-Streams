@@ -14,7 +14,7 @@
  *    
  */
 
-package algorithms.mtree;
+package core.mtree;
 
 /**
  * An object that can calculate the distance between two data objects.

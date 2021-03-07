@@ -1,4 +1,4 @@
-package algorithms;
+package core;
 
 
 import java.io.*;

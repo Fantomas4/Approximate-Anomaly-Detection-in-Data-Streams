@@ -1,9 +1,11 @@
-import algorithms.ISBIndex;
-import algorithms.MCOD.MCOD;
-import algorithms.Stream;
-import outliers.OutlierDetector;
+import algorithms.MCOD;
+import core.Outlier;
+import core.Stream;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.util.HashMap;
+import java.util.Set;
 
 public class Executor {
     private int iMaxMemUsage = 0;
@@ -41,6 +43,29 @@ public class Executor {
     public void performOutlierDetection() {
         while (stream.hasNext()) {
             addNewStreamObjects();
+        }
+        // Evaluate the non-expired nodes still in the window in order to record
+        // the nodes that are pure outliers.
+        mcodObj.evaluateRemainingNodesInWin();
+        exportOutliersToFile();
+        System.out.println("DIAG - TEMP OUTLIER SET SIZE: " + mcodObj.GetOutliersFound().size());
+    }
+
+    public void exportOutliersToFile() {
+        Set<Outlier> outliersDetected;
+        outliersDetected = mcodObj.GetOutliersFound();
+
+        try {
+            BufferedWriter bw = new BufferedWriter(new FileWriter("outliers.txt"));
+
+            for (Outlier outlier : outliersDetected) {
+                bw.write(Long.toString(outlier.id));
+                bw.newLine();
+            }
+
+            bw.close();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
