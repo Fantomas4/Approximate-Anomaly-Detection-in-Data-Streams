@@ -72,9 +72,11 @@ public class MCOD extends MCODBase {
                 RemoveOutlier(node);
                 // add node to inlier set PD
                 SetNodeType(node, NodeType.INLIER_PD);
-                // insert node to event queue
-                ISBNode nodeMinExp = node.GetMinPrecNeigh(windowStart);
-                AddToEventQueue(node, nodeMinExp);
+                // If node is an unsafe inlier, insert it to the event queue
+                if (!IsSafeInlier(node)) {
+                    ISBNode nodeMinExp = node.GetMinPrecNeigh(windowStart);
+                    AddToEventQueue(node, nodeMinExp);
+                }
             }
         }
     }
@@ -208,9 +210,11 @@ public class MCOD extends MCODBase {
                 if (count >= m_k) {
                     // nodeNew is an inlier
                     SetNodeType(nodeNew, NodeType.INLIER_PD);
-                    // insert nodeNew to event queue
-                    ISBNode nodeMinExp = nodeNew.GetMinPrecNeigh(windowStart);
-                    AddToEventQueue(nodeNew, nodeMinExp);
+                    // If nodeNew is an unsafe inlier, insert it to the event queue
+                    if (!IsSafeInlier(nodeNew)) {
+                        ISBNode nodeMinExp = nodeNew.GetMinPrecNeigh(windowStart);
+                        AddToEventQueue(nodeNew, nodeMinExp);
+                    }
                 } else {
                     // nodeNew is an outlier
                     SetNodeType(nodeNew, NodeType.OUTLIER);
@@ -245,14 +249,16 @@ public class MCOD extends MCODBase {
                     SetNodeType(x, NodeType.OUTLIER);
                     SaveOutlier(x);
                 } else {
-                    // x is an inlier, add to event queue
                     // DIAG ONLY -- DELETE
                     if (x.count_after >= m_k) diagSafeInliersCount++;
 
-                    // get oldest preceding neighbor of x
-                    ISBNode nodeMinExp = x.GetMinPrecNeigh(windowStart);
-                    // add x to event queue
-                    AddToEventQueue(x, nodeMinExp);
+                    // If x is an unsafe inlier, add it to the event queue
+                    if (!IsSafeInlier(x)) {
+                        // get oldest preceding neighbor of x
+                        ISBNode nodeMinExp = x.GetMinPrecNeigh(windowStart);
+                        // add x to event queue
+                        AddToEventQueue(x, nodeMinExp);
+                    }
                 }
             }
             e = eventQueue.FindMin();

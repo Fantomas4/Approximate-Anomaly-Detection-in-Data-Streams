@@ -156,6 +156,10 @@ public class MCODBase extends OutlierDetector {
         windowEnd += slideSize;
     }
 
+    protected boolean IsSafeInlier(ISBNode node) {
+        return node.count_after >= m_k;
+    }
+
     protected void SaveOutlier(ISBIndex.ISBNode node) {
         node.nOutlier++; // update statistics
     }
