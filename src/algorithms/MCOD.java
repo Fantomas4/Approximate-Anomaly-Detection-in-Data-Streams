@@ -39,6 +39,12 @@ public class MCOD extends MCODBase {
 
     public MCOD(int windowSize, int slideSize, double radius, int k) {
         super(windowSize, slideSize, radius, k);
+
+        System.out.println("Init MCOD:");
+        System.out.println("   window_size: " + windowSize);
+        System.out.println("   slide_size: " + slideSize);
+        System.out.println("   radius: " + m_radius);
+        System.out.println("   k: " + m_k);
     }
 
     void AddNeighbor(ISBNode node, ISBNode q, boolean bUpdateState) {

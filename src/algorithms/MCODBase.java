@@ -105,12 +105,6 @@ public class MCODBase extends OutlierDetector {
         m_radius = radius;
         m_k = k;
 
-        System.out.println("Init MCOD:");
-        System.out.println("   window_size: " + windowSize);
-        System.out.println("   slide_size: " + slideSize);
-        System.out.println("   radius: " + m_radius);
-        System.out.println("   k: " + m_k);
-
         objId = FIRST_OBJ_ID; // init object identifier
         // create ISB
         ISB_PD = new ISBIndex(m_radius, m_k);

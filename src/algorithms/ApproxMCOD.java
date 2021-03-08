@@ -51,6 +51,14 @@ public class ApproxMCOD extends MCODBase {
         // create PD's safe inliers set
         pdSafeInliers = new HashSet<>();
         m_ar = (m_radius / 2.0) + arFactor * m_radius;
+
+        System.out.println("Init ApproxMCOD:");
+        System.out.println("   window_size: " + this.windowSize);
+        System.out.println("   slide_size: " + this.slideSize);
+        System.out.println("   radius: " + m_radius);
+        System.out.println("   k: " + m_k);
+        System.out.println("   PD Size Limit: " + m_pdLimit);
+        System.out.println("   Approximation radius: " + m_ar);
     }
 
     boolean IsSafeInlier(ISBNode node) {
@@ -391,18 +399,19 @@ public class ApproxMCOD extends MCODBase {
 
 
         // DIAG ONLY -- DELETE
-        System.out.println("-------------------- MCOD baseline --------------------");
-        System.out.println("DIAG - Current stream object: " + (objId - 1));
+        System.out.println("---------------------- ApproxMCOD ----------------------");
         System.out.println("DIAG - Total Exact MCs count: " + diagExactMCCount);
         System.out.println("DIAG - Total Discarded MCs: " + diagDiscardedMCCount);
+//        System.out.println("DIAG - #Times an MC was sustained: " + diagSustainedMCCount);
         System.out.println("DIAG - #Times a point was added to an MC: " + diagAdditionsToMC);
         System.out.println("DIAG - #Times a point was added to PD: " + diagAdditionsToPD);
-        System.out.println("DIAG - #Safe inliers detected: " + diagSafeInliersCount);
+//        System.out.println("DIAG - #Safe inliers detected: " + diagSafeInliersCount);
         System.out.println("DIAG - Total -ACTIVE- MCs: " + setMC.size());
+        System.out.println("DIAG - Total -ACTIVE- PD's Safe Inliers List Population: " + pdSafeInliers.size());
         System.out.println("DIAG - Total -ACTIVE- PD List Population: " + ISB_PD.GetSize());
         System.out.println("DIAG - TEMP OUTLIER SET SIZE: " + GetOutliersFound().size());
         System.out.println("DIAG - TEMP Window size is: " + windowNodes.size());
-        System.out.println("-------------------------------------------------------");
+        System.out.println("--------------------------------------------------------");
     }
 
     private ArrayList<ISBNode> GetExpiredNodes() {
