@@ -400,6 +400,7 @@ public class ApproxMCOD extends MCODBase {
 
         // DIAG ONLY -- DELETE
         System.out.println("---------------------- ApproxMCOD ----------------------");
+        System.out.println("DIAG - Current stream object: " + (objId - 1));
         System.out.println("DIAG - Total Exact MCs count: " + diagExactMCCount);
         System.out.println("DIAG - Total Discarded MCs: " + diagDiscardedMCCount);
 //        System.out.println("DIAG - #Times an MC was sustained: " + diagSustainedMCCount);

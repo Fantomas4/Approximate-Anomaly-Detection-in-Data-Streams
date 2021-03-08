@@ -106,9 +106,14 @@ public class Executor {
 
         }
 
-        exportOutliersToFile();
-
-        System.out.println("DIAG - TEMP OUTLIER SET SIZE: " + mcodObj.GetOutliersFound().size());
+        Set<Outlier> outliersDetected;
+        if (chosenAlgorithm.equals("MCOD")) {
+            outliersDetected = mcodObj.GetOutliersFound();
+            exportOutliersToFile(outliersDetected);
+        } else if (chosenAlgorithm.equals("ApproxMCOD")) {
+            outliersDetected = approxMCODObj.GetOutliersFound();
+            exportOutliersToFile(outliersDetected);
+        }
     }
 
     public void addNewStreamObjects() {
@@ -147,10 +152,7 @@ public class Executor {
         }
     }
 
-    public void exportOutliersToFile() {
-        Set<Outlier> outliersDetected;
-        outliersDetected = mcodObj.GetOutliersFound();
-
+    public void exportOutliersToFile(Set<Outlier> outliersDetected) {
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter("outliers.txt"));
 
@@ -166,8 +168,21 @@ public class Executor {
     }
 
     private void printResults() {
-        int nRangeQueriesExecuted = mcodObj.getnRangeQueriesExecuted();
-        HashMap<String, Integer> results = mcodObj.getResults();
+        int nRangeQueriesExecuted = 0;
+        if (chosenAlgorithm.equals("MCOD")) {
+            nRangeQueriesExecuted = mcodObj.getnRangeQueriesExecuted();
+        } else if (chosenAlgorithm.equals("ApproxMCOD")) {
+            nRangeQueriesExecuted = approxMCODObj.getnRangeQueriesExecuted();
+        }
+
+        HashMap<String, Integer> results = null;
+        if (chosenAlgorithm.equals("MCOD")) {
+            results = mcodObj.getResults();
+
+        } else if (chosenAlgorithm.equals("ApproxMCOD")) {
+            results = approxMCODObj.getResults();
+        }
+
         int nBothInlierOutlier = results.get("nBothInlierOutlier");
         int nOnlyInlier = results.get("nOnlyInlier");
         int nOnlyOutlier = results.get("nOnlyOutlier");
