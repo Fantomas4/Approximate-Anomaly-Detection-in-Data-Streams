@@ -29,7 +29,7 @@ import core.StreamObj;
 
 import java.util.*;
 
-public class MCOD extends MCODBase {
+public class ApproxMCOD extends MCODBase {
     // DIAG ONLY -- DELETE
     int diagExactMCCount = 0;
     int diagDiscardedMCCount = 0;
@@ -37,14 +37,42 @@ public class MCOD extends MCODBase {
     int diagAdditionsToPD = 0;
     int diagSafeInliersCount = 0;
 
-    public MCOD(int windowSize, int slideSize, double radius, int k) {
+    private double m_ar;
+    private int m_pdLimit;
+    private Set<ISBNode> pdSafeInliers; // list of safe inliers
+
+    private Random m_Random;
+
+    public ApproxMCOD(int windowSize, int slideSize, double radius, int k, int pdLimit, double arFactor) {
         super(windowSize, slideSize, radius, k);
 
-        System.out.println("Init MCOD:");
-        System.out.println("   window_size: " + windowSize);
-        System.out.println("   slide_size: " + slideSize);
+        m_Random = new Random();
+        m_pdLimit = pdLimit;
+        // create PD's safe inliers set
+        pdSafeInliers = new HashSet<>();
+        m_ar = (m_radius / 2.0) + arFactor * m_radius;
+
+        System.out.println("Init ApproxMCOD:");
+        System.out.println("   window_size: " + this.windowSize);
+        System.out.println("   slide_size: " + this.slideSize);
         System.out.println("   radius: " + m_radius);
         System.out.println("   k: " + m_k);
+        System.out.println("   PD Size Limit: " + m_pdLimit);
+        System.out.println("   Approximation radius: " + m_ar);
+    }
+
+    boolean IsSafeInlier(ISBNode node) {
+        return node.count_after >= m_k;
+    }
+
+    ISBNode GetSafeInlier(int idx) {
+        ISBNode node = null;
+        Iterator it = pdSafeInliers.iterator();
+        while (idx >= 0) {
+            node = (ISBNode)it.next();
+            idx--;
+        }
+        return node;
     }
 
     void AddNeighbor(ISBNode node, ISBNode q, boolean bUpdateState) {
@@ -117,10 +145,14 @@ public class MCOD extends MCODBase {
                         if (bNewNode) {
                             // update q.count_after and its' outlierness
                             AddNeighbor(q, nodeNew, true);
+                            // Add q to PD's safe inlier set if it is a safe inlier
+                            if (IsSafeInlier(q)) pdSafeInliers.add(q);
                         } else {
                             if (nodesReinsert.contains(q)) {
                                 // update q.count_after or q.nn_before and its' outlierness
                                 AddNeighbor(q, nodeNew, true);
+                                // Add q to PD's safe inlier set if it is a safe inlier
+                                if (IsSafeInlier(q)) pdSafeInliers.add(q);
                             }
                         }
                     }
@@ -128,12 +160,30 @@ public class MCOD extends MCODBase {
             }
         }
         else {
+            // Check ISB_PD's size to determine if a random safe inlier must be removed
+            boolean safeInlierDeleted = false;
+            int nSafeInliers = pdSafeInliers.size();
+            while (ISB_PD.GetSize() > m_pdLimit && nSafeInliers > 0) {
+                int idx = m_Random.nextInt(nSafeInliers);
+                ISBNode si = GetSafeInlier(idx);
+                // Remove the selected safe inlier from the PD's ISB
+                ISB_PD.Remove(si);
+                // Remove the selected safe inlier from the PD's safe inlier set
+                pdSafeInliers.remove(si);
+                // Update the value of the deletion flag
+                safeInlierDeleted = true;
+                // Update safe inliers counter
+                nSafeInliers = pdSafeInliers.size();
+            }
+
             // No close enough micro-cluster found.
             // Perform 3R/2 range query to nodes in set PD.
             nRangeQueriesExecuted++;
+
             // create helper sets for micro-cluster management
             ArrayList<ISBNode> setNC = new ArrayList<ISBNode>();
             ArrayList<ISBNode> setNNC = new ArrayList<ISBNode>();
+            ArrayList<ISBNode> setANC = new ArrayList<ISBNode>();
             Vector<ISBSearchResult> resultNodes;
             resultNodes = ISB_PD.RangeSearch(nodeNew, 1.5 * m_radius); // 1.5 ###
             for (ISBSearchResult sr : resultNodes) {
@@ -144,10 +194,14 @@ public class MCOD extends MCODBase {
                     if (bNewNode) {
                         // update q.count_after and its' outlierness
                         AddNeighbor(q, nodeNew, true);
+                        // Add q to PD's safe inlier set if it is a safe inlier
+                        if (IsSafeInlier(q)) pdSafeInliers.add(q);
                     } else {
                         if (nodesReinsert.contains(q)) {
                             // update q.count_after or q.nn_before and its' outlierness
                             AddNeighbor(q, nodeNew, true);
+                            // Add q to PD's safe inlier set if it is a safe inlier
+                            if (IsSafeInlier(q)) pdSafeInliers.add(q);
                         }
                     }
                 }
@@ -156,11 +210,22 @@ public class MCOD extends MCODBase {
                     setNC.add(q);
                 } else {
                     setNNC.add(q);
+                    if (safeInlierDeleted && sr.distance <= m_ar) {
+                        setANC.add(q);
+                    }
                 }
             }
 
-            // check if size of set NC big enough to create cluster
-            if (setNC.size() >= m_theta * m_k) {
+            // check if the number of objects found is big enough to create a cluster
+            int nCollectedObjects;
+            if (safeInlierDeleted) {
+                // Check size of sets NC and ANC
+                nCollectedObjects = setNC.size() + setANC.size();
+            } else {
+                // Check size of set NC
+                nCollectedObjects = setNC.size();
+            }
+            if (nCollectedObjects >= m_theta * m_k) {
                 // DIAG ONLY -- DELETE
                 diagExactMCCount ++;
 
@@ -181,8 +246,24 @@ public class MCOD extends MCODBase {
                     // move q from set PD to set inlier-mc
                     SetNodeType(q, NodeType.INLIER_MC);
                     ISB_PD.Remove(q);
+                    // If q is a safe inlier, also remove it from the PD's safe inlier set.
+                    if (IsSafeInlier(q)) pdSafeInliers.remove(q);
                     RemoveOutlier(q); // needed? ###
                 }
+                // Add to new mc nodes within range ar
+                for (ISBNode q : setANC) {
+                    q.mc = mcNew;
+                    // DIAG ONLY -- DELETE
+                    diagAdditionsToMC++;
+                    mcNew.AddNode(q);
+                    // move q from set PD to set inlier-mc
+                    SetNodeType(q, NodeType.INLIER_MC);
+                    ISB_PD.Remove(q);
+                    // If q is a safe inlier, also remove it from the PD's safe inlier set.
+                    if (IsSafeInlier(q)) pdSafeInliers.remove(q);
+                    RemoveOutlier(q); // needed? ###
+                }
+
 
                 // Update Rmc lists of nodes of PD in range 3R/2 from mcNew
                 for (ISBNode q : setNNC) {
@@ -199,9 +280,6 @@ public class MCOD extends MCODBase {
                     }
                 }
 
-                ISB_PD.Insert(nodeNew);
-                diagAdditionsToPD++;
-
                 // check if nodeNew is an inlier or outlier
                 // use both nn_before and count_after for case bNewNode=false
                 int count = nodeNew.CountPrecNeighs(windowStart) + nodeNew.count_after;
@@ -217,9 +295,17 @@ public class MCOD extends MCODBase {
                     SaveOutlier(nodeNew);
                 }
 
-                // Update nodeNew.Rmc
-                for (SearchResultMC sr : resultsMC) {
-                    nodeNew.Rmc.add(sr.mc);
+                // If nodeNew is not a safe inlier, add it to PD
+                // If nodeNew is a safe inlier, add it to PD only if PD size limit has not been reached.
+                if (!IsSafeInlier(nodeNew) || (IsSafeInlier(nodeNew) && ISB_PD.GetSize() < m_pdLimit)) {
+                    // Insert nodeNew to index of nodes of PD
+                    ISB_PD.Insert(nodeNew);
+                    diagAdditionsToPD++;
+
+                    // Update nodeNew.Rmc
+                    for (SearchResultMC sr : resultsMC) {
+                        nodeNew.Rmc.add(sr.mc);
+                    }
                 }
             }
         }
@@ -313,18 +399,20 @@ public class MCOD extends MCODBase {
 
 
         // DIAG ONLY -- DELETE
-        System.out.println("-------------------- MCOD baseline --------------------");
+        System.out.println("---------------------- ApproxMCOD ----------------------");
         System.out.println("DIAG - Current stream object: " + (objId - 1));
         System.out.println("DIAG - Total Exact MCs count: " + diagExactMCCount);
         System.out.println("DIAG - Total Discarded MCs: " + diagDiscardedMCCount);
+//        System.out.println("DIAG - #Times an MC was sustained: " + diagSustainedMCCount);
         System.out.println("DIAG - #Times a point was added to an MC: " + diagAdditionsToMC);
         System.out.println("DIAG - #Times a point was added to PD: " + diagAdditionsToPD);
-        System.out.println("DIAG - #Safe inliers detected: " + diagSafeInliersCount);
+//        System.out.println("DIAG - #Safe inliers detected: " + diagSafeInliersCount);
         System.out.println("DIAG - Total -ACTIVE- MCs: " + setMC.size());
+        System.out.println("DIAG - Total -ACTIVE- PD's Safe Inliers List Population: " + pdSafeInliers.size());
         System.out.println("DIAG - Total -ACTIVE- PD List Population: " + ISB_PD.GetSize());
         System.out.println("DIAG - TEMP OUTLIER SET SIZE: " + GetOutliersFound().size());
         System.out.println("DIAG - TEMP Window size is: " + windowNodes.size());
-        System.out.println("-------------------------------------------------------");
+        System.out.println("--------------------------------------------------------");
     }
 
     private ArrayList<ISBNode> GetExpiredNodes() {

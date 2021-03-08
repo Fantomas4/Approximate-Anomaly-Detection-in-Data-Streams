@@ -105,12 +105,6 @@ public class MCODBase extends OutlierDetector {
         m_radius = radius;
         m_k = k;
 
-        System.out.println("Init MCOD:");
-        System.out.println("   window_size: " + windowSize);
-        System.out.println("   slide_size: " + slideSize);
-        System.out.println("   radius: " + m_radius);
-        System.out.println("   k: " + m_k);
-
         objId = FIRST_OBJ_ID; // init object identifier
         // create ISB
         ISB_PD = new ISBIndex(m_radius, m_k);
@@ -212,11 +206,8 @@ public class MCODBase extends OutlierDetector {
         results.put("nBothInlierOutlier", nBothInlierOutlier);
         results.put("nOnlyInlier", nOnlyInlier);
         results.put("nOnlyOutlier", nOnlyOutlier);
+        results.put("nRangeQueriesExecuted", nRangeQueriesExecuted);
         return results;
-    }
-
-    public int getnRangeQueriesExecuted() {
-        return nRangeQueriesExecuted;
     }
 
     protected double GetEuclideanDist(ISBIndex.ISBNode n1, ISBIndex.ISBNode n2)
