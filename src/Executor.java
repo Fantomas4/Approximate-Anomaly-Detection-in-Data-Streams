@@ -23,6 +23,7 @@ public class Executor {
     private int kParameter;
     private String dataFile;
     private boolean containsClass;
+    private String outliersFile;
 
     // ApproxMCOD additional parameters
     private int pdLimit;
@@ -77,6 +78,9 @@ public class Executor {
                     case "--containsClass":
                         this.containsClass = Boolean.parseBoolean(args[i + 1]);
                         break;
+                    case "--outliersFile":
+                        this.outliersFile = args[i + 1];
+                        break;
                 }
             }
         }
@@ -103,22 +107,23 @@ public class Executor {
 
         } else if (chosenAlgorithm.equals("ApproxMCOD")) {
             approxMCODObj.evaluateRemainingNodesInWin();
-
         }
 
         Set<Outlier> outliersDetected;
         if (chosenAlgorithm.equals("MCOD")) {
             outliersDetected = mcodObj.GetOutliersFound();
-            exportOutliersToFile(outliersDetected);
+            exportOutliersToFile(outliersDetected, outliersFile);
         } else if (chosenAlgorithm.equals("ApproxMCOD")) {
             outliersDetected = approxMCODObj.GetOutliersFound();
-            exportOutliersToFile(outliersDetected);
+            exportOutliersToFile(outliersDetected, outliersFile);
         }
     }
 
     public void addNewStreamObjects() {
+        Long nsNow;
+
         if (chosenAlgorithm.equals("MCOD")) {
-            Long nsNow = System.nanoTime();
+            nsNow = System.nanoTime();
 
             mcodObj.ProcessNewStreamObjects(stream.getIncomingData(slideSize));
 
@@ -134,7 +139,7 @@ public class Executor {
                 m_timePreObjSum = 0L;
             }
         } else if (chosenAlgorithm.equals("ApproxMCOD")) {
-            Long nsNow = System.nanoTime();
+            nsNow = System.nanoTime();
 
             approxMCODObj.ProcessNewStreamObjects(stream.getIncomingData(slideSize));
 
@@ -152,9 +157,9 @@ public class Executor {
         }
     }
 
-    public void exportOutliersToFile(Set<Outlier> outliersDetected) {
+    private void exportOutliersToFile(Set<Outlier> outliersDetected, String targetFile) {
         try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter("outliers.txt"));
+            BufferedWriter bw = new BufferedWriter(new FileWriter(targetFile));
 
             for (Outlier outlier : outliersDetected) {
                 bw.write(Long.toString(outlier.id));
@@ -167,14 +172,7 @@ public class Executor {
         }
     }
 
-    private void printResults() {
-        int nRangeQueriesExecuted = 0;
-        if (chosenAlgorithm.equals("MCOD")) {
-            nRangeQueriesExecuted = mcodObj.getnRangeQueriesExecuted();
-        } else if (chosenAlgorithm.equals("ApproxMCOD")) {
-            nRangeQueriesExecuted = approxMCODObj.getnRangeQueriesExecuted();
-        }
-
+    public HashMap<String, Integer> getResults() {
         HashMap<String, Integer> results = null;
         if (chosenAlgorithm.equals("MCOD")) {
             results = mcodObj.getResults();
@@ -183,9 +181,16 @@ public class Executor {
             results = approxMCODObj.getResults();
         }
 
+        return results;
+    }
+
+    public void printResults() {
+        HashMap<String, Integer> results = getResults();
+
         int nBothInlierOutlier = results.get("nBothInlierOutlier");
         int nOnlyInlier = results.get("nOnlyInlier");
         int nOnlyOutlier = results.get("nOnlyOutlier");
+        int nRangeQueriesExecuted = results.get("nRangeQueriesExecuted");
 
         System.out.println("Statistics:\n\n");
         int sum = nBothInlierOutlier + nOnlyInlier + nOnlyOutlier;
@@ -202,11 +207,11 @@ public class Executor {
         System.out.println("  Total process time: " + String.format("%.2f ms", nTotalRunTime / 1000.0) + "\n");
     }
 
-    protected void UpdateMaxMemUsage() {
+    private void UpdateMaxMemUsage() {
         int x = GetMemoryUsage();
         if (iMaxMemUsage < x) iMaxMemUsage = x;
     }
-    protected int GetMemoryUsage() {
+    private int GetMemoryUsage() {
         int iMemory = (int) ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1024));
         return iMemory;
     }

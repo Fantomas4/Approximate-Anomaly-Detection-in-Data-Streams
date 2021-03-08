@@ -206,11 +206,8 @@ public class MCODBase extends OutlierDetector {
         results.put("nBothInlierOutlier", nBothInlierOutlier);
         results.put("nOnlyInlier", nOnlyInlier);
         results.put("nOnlyOutlier", nOnlyOutlier);
+        results.put("nRangeQueriesExecuted", nRangeQueriesExecuted);
         return results;
-    }
-
-    public int getnRangeQueriesExecuted() {
-        return nRangeQueriesExecuted;
     }
 
     protected double GetEuclideanDist(ISBIndex.ISBNode n1, ISBIndex.ISBNode n2)
