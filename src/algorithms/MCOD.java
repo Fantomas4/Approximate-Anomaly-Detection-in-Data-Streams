@@ -275,7 +275,11 @@ public class MCOD extends MCODBase {
                     diagDiscardedMCCount ++;
 
                     // remove micro-cluster mc
-                    RemoveMicroCluster(mc);
+                    try {
+                        RemoveMicroCluster(mc);
+                    } catch (CorruptedDataStateException e) {
+                        e.printStackTrace();
+                    }
 
                     // insert nodes of mc to set nodesReinsert
                     nodesReinsert = new TreeSet<ISBNode>();
@@ -351,8 +355,18 @@ public class MCOD extends MCODBase {
         setMC.add(mc);
     }
 
-    void RemoveMicroCluster(MicroCluster mc) {
-        mtreeMC.remove(mc);
-        setMC.remove(mc);
+    public class CorruptedDataStateException extends Exception {
+        public CorruptedDataStateException(String errorMessage) {
+            super(errorMessage);
+        }
+    }
+
+    void RemoveMicroCluster(MicroCluster mc) throws CorruptedDataStateException {
+        boolean mtreeRemoval = mtreeMC.remove(mc);
+        boolean setMCRemoval = setMC.remove(mc);
+
+        if (mtreeRemoval != setMCRemoval) {
+            throw new CorruptedDataStateException("The target mc was removed from setMC but was not found in M-Tree");
+        }
     }
 }
