@@ -349,24 +349,4 @@ public class MCOD extends MCODBase {
         }
         return expiredNodes;
     }
-
-    void AddMicroCluster(MicroCluster mc) {
-        mtreeMC.add(mc);
-        setMC.add(mc);
-    }
-
-    public class CorruptedDataStateException extends Exception {
-        public CorruptedDataStateException(String errorMessage) {
-            super(errorMessage);
-        }
-    }
-
-    void RemoveMicroCluster(MicroCluster mc) throws CorruptedDataStateException {
-        boolean mtreeRemoval = mtreeMC.remove(mc);
-        boolean setMCRemoval = setMC.remove(mc);
-
-        if (mtreeRemoval != setMCRemoval) {
-            throw new CorruptedDataStateException("The target mc was removed from setMC but was not found in M-Tree");
-        }
-    }
 }

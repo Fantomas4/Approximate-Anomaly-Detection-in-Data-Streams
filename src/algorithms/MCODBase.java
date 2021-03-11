@@ -142,7 +142,7 @@ public class MCODBase extends OutlierDetector {
     }
 
     protected int getNodeSlide(ISBNode node) {
-        // Since node IDs begin from 1, we subtract 1 from the id so that the modulo
+        // Since node IDs begin from 1, we subtract 1 from the id so that the integer division
         // operation always returns the correct slide the node belongs to.
         long adjustedID = node.id - 1;
 
@@ -179,6 +179,26 @@ public class MCODBase extends OutlierDetector {
         // Check whether the node should be recorded as a pure outlier
         // by the outlier detector
         evaluateAsOutlier(node);
+    }
+
+    protected void AddMicroCluster(MicroCluster mc) {
+        mtreeMC.add(mc);
+        setMC.add(mc);
+    }
+
+    protected class CorruptedDataStateException extends Exception {
+        public CorruptedDataStateException(String errorMessage) {
+            super(errorMessage);
+        }
+    }
+
+    protected void RemoveMicroCluster(MicroCluster mc) throws CorruptedDataStateException {
+        boolean mtreeRemoval = mtreeMC.remove(mc);
+        boolean setMCRemoval = setMC.remove(mc);
+
+        if (mtreeRemoval != setMCRemoval) {
+            throw new CorruptedDataStateException("The target mc was removed from setMC but was not found in M-Tree");
+        }
     }
 
     protected void UpdateStatistics(ISBIndex.ISBNode node) {

@@ -357,7 +357,11 @@ public class ApproxMCOD extends MCODBase {
                     diagDiscardedMCCount ++;
 
                     // remove micro-cluster mc
-                    RemoveMicroCluster(mc);
+                    try {
+                        RemoveMicroCluster(mc);
+                    } catch (CorruptedDataStateException e) {
+                        e.printStackTrace();
+                    }
 
                     // insert nodes of mc to set nodesReinsert
                     nodesReinsert = new TreeSet<ISBNode>();
@@ -428,15 +432,5 @@ public class ApproxMCOD extends MCODBase {
             }
         }
         return expiredNodes;
-    }
-
-    void AddMicroCluster(MicroCluster mc) {
-        mtreeMC.add(mc);
-        setMC.add(mc);
-    }
-
-    void RemoveMicroCluster(MicroCluster mc) {
-        mtreeMC.remove(mc);
-        setMC.remove(mc);
     }
 }
