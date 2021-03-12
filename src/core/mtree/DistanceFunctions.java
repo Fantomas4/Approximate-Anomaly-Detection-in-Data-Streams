@@ -25,13 +25,13 @@ import java.util.Map;
  * functions}.
  */
 public final class DistanceFunctions {
-	
-    /**
-     * Don't let anyone instantiate this class.
-     */
+
+	/**
+	 * Don't let anyone instantiate this class.
+	 */
 	private DistanceFunctions() {}
-	
-	
+
+
 	/**
 	 * Creates a cached version of a {@linkplain DistanceFunction distance
 	 * function}. This method is used internally by {@link MTree} to create
@@ -46,7 +46,7 @@ public final class DistanceFunctions {
 			class Pair {
 				Data data1;
 				Data data2;
-				
+
 				public Pair(Data data1, Data data2) {
 					this.data1 = data1;
 					this.data2 = data2;
@@ -56,21 +56,21 @@ public final class DistanceFunctions {
 				public int hashCode() {
 					return data1.hashCode() ^ data2.hashCode();
 				}
-				
+
 				@Override
 				public boolean equals(Object arg0) {
 					if(arg0 instanceof Pair) {
 						Pair that = (Pair) arg0;
 						return this.data1.equals(that.data1)
-						    && this.data2.equals(that.data2);
+								&& this.data2.equals(that.data2);
 					} else {
 						return false;
 					}
 				}
 			}
-			
+
 			private final Map<Pair, Double> cache = new HashMap<Pair, Double>();
-			
+
 			@Override
 			public double calculate(Data data1, Data data2) {
 				Pair pair1 = new Pair(data1, data2);
@@ -78,13 +78,13 @@ public final class DistanceFunctions {
 				if(distance != null) {
 					return distance;
 				}
-				
+
 				Pair pair2 = new Pair(data2, data1);
 				distance = cache.get(pair2);
 				if(distance != null) {
 					return distance;
 				}
-				
+
 				distance = distanceFunction.calculate(data1, data2);
 				cache.put(pair1, distance);
 				cache.put(pair2, distance);
@@ -92,9 +92,9 @@ public final class DistanceFunctions {
 			}
 		};
 	}
-	
-	
-	
+
+
+
 	/**
 	 * An interface to represent coordinates in Euclidean spaces.
 	 * @see <a href="http://en.wikipedia.org/wiki/Euclidean_space">"Euclidean
@@ -105,19 +105,19 @@ public final class DistanceFunctions {
 		 * The number of dimensions.
 		 */
 		int dimensions();
-		
+
 		/**
 		 * A method to access the {@code index}-th component of the coordinate.
-		 * 
+		 *
 		 * @param index The index of the component. Must be less than {@link
-		 *              #dimensions()}. 
+		 *              #dimensions()}.
 		 */
 		double get(int index);
 	}
-	
-	
+
+
 	/**
-	 * Calculates the distance between two {@linkplain EuclideanCoordinate 
+	 * Calculates the distance between two {@linkplain EuclideanCoordinate
 	 * euclidean coordinates}.
 	 */
 	public static double euclidean(EuclideanCoordinate coord1, EuclideanCoordinate coord2) {
@@ -137,7 +137,7 @@ public final class DistanceFunctions {
 	 * the distance between two {@linkplain EuclideanCoordinate euclidean
 	 * coordinates}.
 	 */
-	public static final DistanceFunction<EuclideanCoordinate> EUCLIDEAN = new DistanceFunction<EuclideanCoordinate>() {
+	public static final DistanceFunction<EuclideanCoordinate> EUCLIDEAN = new DistanceFunction<DistanceFunctions.EuclideanCoordinate>() {
 		@Override
 		public double calculate(EuclideanCoordinate coord1, EuclideanCoordinate coord2) {
 			return DistanceFunctions.euclidean(coord1, coord2);
@@ -148,7 +148,7 @@ public final class DistanceFunctions {
 	/**
 	 * A {@linkplain DistanceFunction distance function} object that calculates
 	 * the distance between two coordinates represented by {@linkplain
-	 * List lists} of {@link Integer}s.
+	 * java.util.List lists} of {@link java.lang.Integer}s.
 	 */
 	public static final DistanceFunction<List<Integer>> EUCLIDEAN_INTEGER_LIST = new DistanceFunction<List<Integer>>() {
 		@Override
@@ -168,7 +168,7 @@ public final class DistanceFunctions {
 	/**
 	 * A {@linkplain DistanceFunction distance function} object that calculates
 	 * the distance between two coordinates represented by {@linkplain
-	 * List lists} of {@link Double}s.
+	 * java.util.List lists} of {@link java.lang.Double}s.
 	 */
 	public static final DistanceFunction<List<Double>> EUCLIDEAN_DOUBLE_LIST = new DistanceFunction<List<Double>>() {
 		@Override
@@ -184,4 +184,7 @@ public final class DistanceFunctions {
 			return DistanceFunctions.euclidean(coord1, coord2);
 		}
 	};
+
+
+
 }

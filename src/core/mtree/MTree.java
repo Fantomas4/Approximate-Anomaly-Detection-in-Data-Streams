@@ -18,8 +18,18 @@
 
 package core.mtree;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.PriorityQueue;
+import java.util.Set;
 
-import java.util.*;
+import core.mtree.SplitFunction.SplitResult;
+import core.mtree.utils.Pair;
 
 
 /**
@@ -43,50 +53,50 @@ public class MTree<DATA> {
 		/** A nearest-neighbor. */
 		public DATA data;
 
-		/** 
+		/**
 		 * The distance from the nearest-neighbor to the query data object
 		 * parameter.
 		 */
 		public double distance;
 	}
-	
-	
+
+
 	// Exception classes
 	private static class SplitNodeReplacement extends Exception {
 		// A subclass of Throwable cannot be generic.  :-(
 		// So, we have newNodes declared as Object[] instead of Node[].
 		private Object newNodes[];
-		
+
 		private SplitNodeReplacement(Object... newNodes) {
 			this.newNodes = newNodes;
 		}
 	}
-	
+
 	private static class RootNodeReplacement extends Exception {
 		// A subclass of Throwable cannot be generic.  :-(
 		// So, we have newRoot declared as Object instead of Node.
 		private Object newRoot;
-		
+
 		private RootNodeReplacement(Object newRoot) {
 			this.newRoot = newRoot;
 		}
 	}
 
-	
+
 	private static class NodeUnderCapacity extends Exception { }
-	
+
 
 	private static class DataNotFound extends Exception { }
 
 	/**
 	 * An {@link Iterable} class which can be iterated to fetch the results of a
 	 * nearest-neighbors query.
-	 * 
+	 *
 	 * <p>The neighbors are presented in non-decreasing order from the {@code
 	 * queryData} argument to the {@link MTree#getNearest(Object, double, int)
 	 * getNearest*()}
 	 * call.
-	 * 
+	 *
 	 * <p>The query on the M-Tree is executed during the iteration, as the
 	 * results are fetched. It means that, by the time when the <i>n</i>-th
 	 * result is fetched, the next result may still not be known, and the
@@ -96,7 +106,7 @@ public class MTree<DATA> {
 	public class Query implements Iterable<ResultItem> {
 
 		private class ResultsIterator implements Iterator<ResultItem> {
-			
+
 			private class ItemWithDistances <U> implements Comparable<ItemWithDistances<U>> {
 				private U item;
 				private double distance;
@@ -119,39 +129,39 @@ public class MTree<DATA> {
 					}
 				}
 			}
-			
-			
+
+
 			private ResultItem nextResultItem = null;
 			private boolean finished = false;
 			private PriorityQueue<ItemWithDistances<Node>> pendingQueue = new PriorityQueue<ItemWithDistances<Node>>();
 			private double nextPendingMinDistance;
 			private PriorityQueue<ItemWithDistances<Entry>> nearestQueue = new PriorityQueue<ItemWithDistances<Entry>>();
 			private int yieldedCount;
-			
+
 			private ResultsIterator() {
 				if(MTree.this.root == null) {
 					finished = true;
 					return;
 				}
-				
+
 				double distance = MTree.this.distanceFunction.calculate(Query.this.data, MTree.this.root.data);
 				double minDistance = Math.max(distance - MTree.this.root.radius, 0.0);
-				
+
 				pendingQueue.add(new ItemWithDistances<Node>(MTree.this.root, distance, minDistance));
 				nextPendingMinDistance = minDistance;
 			}
-			
-			
+
+
 			@Override
 			public boolean hasNext() {
 				if(finished) {
 					return false;
 				}
-				
+
 				if(nextResultItem == null) {
 					fetchNext();
 				}
-				
+
 				if(nextResultItem == null) {
 					finished = true;
 					return false;
@@ -159,7 +169,7 @@ public class MTree<DATA> {
 					return true;
 				}
 			}
-			
+
 			@Override
 			public ResultItem next() {
 				if(hasNext()) {
@@ -170,31 +180,31 @@ public class MTree<DATA> {
 					throw new NoSuchElementException();
 				}
 			}
-			
+
 			@Override
 			public void remove() {
 				throw new UnsupportedOperationException();
 			}
-			
-			
+
+
 			private void fetchNext() {
 				assert !finished;
-				
+
 				if(finished  ||  yieldedCount >= Query.this.limit) {
 					finished = true;
 					return;
 				}
-				
+
 				while(!pendingQueue.isEmpty()  ||  !nearestQueue.isEmpty()) {
 					if(prepareNextNearest()) {
 						return;
 					}
-					
+
 					assert !pendingQueue.isEmpty();
-					
+
 					ItemWithDistances<Node> pending = pendingQueue.poll();
 					Node node = pending.item;
-					
+
 					for(IndexItem child : node.children.values()) {
 						if(Math.abs(pending.distance - child.distanceToParent) - child.radius <= Query.this.range) {
 							double childDistance = MTree.this.distanceFunction.calculate(Query.this.data, child.data);
@@ -212,7 +222,7 @@ public class MTree<DATA> {
 							}
 						}
 					}
-					
+
 					if(pendingQueue.isEmpty()) {
 						nextPendingMinDistance = Double.POSITIVE_INFINITY;
 					} else {
@@ -223,7 +233,7 @@ public class MTree<DATA> {
 				finished = true;
 			}
 
-			
+
 			private boolean prepareNextNearest() {
 				if(!nearestQueue.isEmpty()) {
 					ItemWithDistances<Entry> nextNearest = nearestQueue.peek();
@@ -234,33 +244,33 @@ public class MTree<DATA> {
 						return true;
 					}
 				}
-				
+
 				return false;
 			}
-			
+
 		}
-		
-		
+
+
 		private Query(DATA data, double range, int limit) {
 			this.data = data;
 			this.range = range;
 			this.limit = limit;
 		}
-		
-		
+
+
 		@Override
 		public Iterator<ResultItem> iterator() {
 			return new ResultsIterator();
 		}
 
-		
+
 		private DATA data;
 		private double range;
 		private int limit;
 	}
 
 
-	
+
 	/**
 	 * The default minimum capacity of nodes in an M-Tree, when not specified in
 	 * the constructor call.
@@ -273,18 +283,18 @@ public class MTree<DATA> {
 	protected DistanceFunction<? super DATA> distanceFunction;
 	protected SplitFunction<DATA> splitFunction;
 	protected Node root;
-	
-	
+
+
 	/**
 	 * Constructs an M-Tree with the specified distance function.
 	 * @param distanceFunction The object used to calculate the distance between
 	 *        two data objects.
 	 */
 	public MTree(DistanceFunction<? super DATA> distanceFunction,
-			SplitFunction<DATA> splitFunction) {
+				 SplitFunction<DATA> splitFunction) {
 		this(DEFAULT_MIN_NODE_CAPACITY, distanceFunction, splitFunction);
 	}
-	
+
 	/**
 	 * Constructs an M-Tree with the specified minimum node capacity and
 	 * distance function.
@@ -295,11 +305,11 @@ public class MTree<DATA> {
 	 *        they are full when a new child must be added.
 	 */
 	public MTree(int minNodeCapacity,
-			DistanceFunction<? super DATA> distanceFunction,
-			SplitFunction<DATA> splitFunction) {
+				 DistanceFunction<? super DATA> distanceFunction,
+				 SplitFunction<DATA> splitFunction) {
 		this(minNodeCapacity, 2 * minNodeCapacity - 1, distanceFunction, splitFunction);
 	}
-	
+
 	/**
 	 * Constructs an M-Tree with the specified minimum and maximum node
 	 * capacities and distance function.
@@ -311,35 +321,35 @@ public class MTree<DATA> {
 	 *        they are full when a new child must be added.
 	 */
 	public MTree(int minNodeCapacity, int maxNodeCapacity,
-			DistanceFunction<? super DATA> distanceFunction,
-			SplitFunction<DATA> splitFunction)
+				 DistanceFunction<? super DATA> distanceFunction,
+				 SplitFunction<DATA> splitFunction)
 	{
 		if(minNodeCapacity < 2  ||  maxNodeCapacity <= minNodeCapacity  ||
-		   distanceFunction == null) {
+				distanceFunction == null) {
 			throw new IllegalArgumentException();
 		}
-		
+
 		if(splitFunction == null) {
 			splitFunction = new ComposedSplitFunction<DATA>(
 					new PromotionFunctions.RandomPromotion<DATA>(),
 					new PartitionFunctions.BalancedPartition<DATA>()
-				);
+			);
 		}
-		
+
 		this.minNodeCapacity = minNodeCapacity;
 		this.maxNodeCapacity = maxNodeCapacity;
 		this.distanceFunction = distanceFunction;
 		this.splitFunction = splitFunction;
 		this.root = null;
 	}
-	
-	
+
+
 	/**
 	 * Adds and indexes a data object.
-	 * 
+	 *
 	 * <p>An object that is already indexed should not be added. There is no
 	 * validation regarding this, and the behavior is undefined if done.
-	 * 
+	 *
 	 * @param data The data object to index.
 	 */
 	public void add(DATA data) {
@@ -377,7 +387,7 @@ public class MTree<DATA> {
 		if(root == null) {
 			return false;
 		}
-		
+
 		double distanceToRoot = distanceFunction.calculate(data, root.data);
 		try {
 			root.removeData(data, distanceToRoot);
@@ -403,8 +413,8 @@ public class MTree<DATA> {
 	public Query getNearestByRange(DATA queryData, double range) {
 		return getNearest(queryData, range, Integer.MAX_VALUE);
 	}
-	
-	
+
+
 	/**
 	 * Performs a nearest-neighbors query on the M-Tree, constrained by the
 	 * number of neighbors.
@@ -437,14 +447,14 @@ public class MTree<DATA> {
 	public Query getNearest(DATA queryData) {
 		return new Query(queryData, Double.POSITIVE_INFINITY, Integer.MAX_VALUE);
 	}
-	
-	
+
+
 	protected void _check() {
 		if(root != null) {
 			root._check();
 		}
 	}
-	
+
 
 	private class IndexItem {
 		DATA data;
@@ -474,22 +484,22 @@ public class MTree<DATA> {
 		}
 	}
 
-	
-	
+
+
 	private abstract class Node extends IndexItem {
 
 		protected Map<DATA, IndexItem> children = new HashMap<DATA, IndexItem>();
 		protected Rootness       rootness;
 		protected Leafness<DATA> leafness;
-		
+
 		private
 		<R extends NodeTrait & Rootness, L extends NodeTrait & Leafness<DATA>>
 		Node(DATA data, R rootness, L leafness) {
 			super(data);
-			
+
 			rootness.thisNode = this;
 			this.rootness = rootness;
-			
+
 			leafness.thisNode = this;
 			this.leafness = leafness;
 		}
@@ -535,14 +545,14 @@ public class MTree<DATA> {
 		private final void checkMaxCapacity() throws SplitNodeReplacement {
 			if(children.size() > MTree.this.maxNodeCapacity) {
 				DistanceFunction<? super DATA> cachedDistanceFunction = DistanceFunctions.cached(MTree.this.distanceFunction);
-				SplitFunction.SplitResult<DATA> splitResult = MTree.this.splitFunction.process(children.keySet(), cachedDistanceFunction);
-				
+				SplitResult<DATA> splitResult = MTree.this.splitFunction.process(children.keySet(), cachedDistanceFunction);
+
 				Node newNode0 = null;
 				Node newNode1 = null;
 				for(int i = 0; i < 2; ++i) {
 					DATA promotedData   = splitResult.promoted.get(i);
 					Set<DATA> partition = splitResult.partitions.get(i);
-					
+
 					Node newNode = newSplitNodeReplacement(promotedData);
 					for(DATA data : partition) {
 						IndexItem child = children.get(data);
@@ -589,8 +599,7 @@ public class MTree<DATA> {
 		}
 
 		private void updateRadius(IndexItem child) {
-                        if (child != null) // ### added by mits
-                            this.radius = Math.max(this.radius, child.distanceToParent + child.radius);
+			this.radius = Math.max(this.radius, child.distanceToParent + child.radius);
 		}
 
 		void _checkMinCapacity() {
@@ -612,7 +621,7 @@ public class MTree<DATA> {
 			double sum = child.distanceToParent + child.radius;
 			assert sum <= this.radius;
 		}
-		
+
 		protected void _checkDistanceToParent() {
 			rootness._checkDistanceToParent();
 		}
@@ -621,14 +630,14 @@ public class MTree<DATA> {
 			return MTree.this;
 		}
 	}
-	
-	
-	
-	
+
+
+
+
 	private abstract class NodeTrait {
 		protected Node thisNode;
 	}
-	
+
 	private interface Leafness<DATA> {
 		void doAddData(DATA data, double distance);
 		void addChild(MTree<DATA>.IndexItem child, double distance);
@@ -636,22 +645,22 @@ public class MTree<DATA> {
 		MTree<DATA>.Node newSplitNodeReplacement(DATA data);
 		void _checkChildClass(MTree<DATA>.IndexItem child);
 	}
-	
+
 	private interface Rootness {
 		int getMinCapacity();
 		void _checkDistanceToParent();
 		void _checkMinCapacity();
 	}
-	
-	
-	
+
+
+
 	private class RootNodeTrait extends NodeTrait implements Rootness {
-		
+
 		@Override
 		public int getMinCapacity() {
 			throw new RuntimeException("Should not be called!");
 		}
-		
+
 		@Override
 		public void _checkDistanceToParent() {
 			assert thisNode.distanceToParent == -1;
@@ -661,31 +670,31 @@ public class MTree<DATA> {
 		public void _checkMinCapacity() {
 			thisNode._checkMinCapacity();
 		}
-		
+
 	};
 
 
 	private class NonRootNodeTrait extends NodeTrait implements Rootness {
-		
+
 		@Override
 		public int getMinCapacity() {
 			return MTree.this.minNodeCapacity;
 		}
-		
+
 		@Override
 		public void _checkMinCapacity() {
 			assert thisNode.children.size() >= thisNode.mtree().minNodeCapacity;
 		}
-		
+
 		@Override
 		public void _checkDistanceToParent() {
 			assert thisNode.distanceToParent >= 0;
 		}
 	};
-	
-	
+
+
 	private class LeafNodeTrait extends NodeTrait implements Leafness<DATA> {
-		
+
 		public void doAddData(DATA data, double distance) {
 			Entry entry = thisNode.mtree().new Entry(data);
 			assert !thisNode.children.containsKey(data);
@@ -700,11 +709,11 @@ public class MTree<DATA> {
 			assert thisNode.children.containsKey(child.data);
 			thisNode.updateMetrics(child, distance);
 		}
-		
+
 		public Node newSplitNodeReplacement(DATA data) {
 			return thisNode.mtree().new LeafNode(data);
 		}
-		
+
 
 		@Override
 		public void doRemoveData(DATA data, double distance) throws DataNotFound {
@@ -720,7 +729,7 @@ public class MTree<DATA> {
 
 
 	class NonLeafNodeTrait extends NodeTrait implements Leafness<DATA> {
-		
+
 		public void doAddData(DATA data, double distance) {
 			class CandidateChild {
 				Node node;
@@ -732,10 +741,10 @@ public class MTree<DATA> {
 					this.metric = metric;
 				}
 			}
-			
+
 			CandidateChild minRadiusIncreaseNeeded = new CandidateChild(null, -1.0, Double.POSITIVE_INFINITY);
 			CandidateChild nearestDistance         = new CandidateChild(null, -1.0, Double.POSITIVE_INFINITY);
-			
+
 			for(IndexItem item : thisNode.children.values()) {
 				@SuppressWarnings("unchecked")
 				Node child = (Node)item;
@@ -751,20 +760,20 @@ public class MTree<DATA> {
 					}
 				}
 			}
-			
+
 			CandidateChild chosen = (nearestDistance.node != null)
-			                      ? nearestDistance
-			                      : minRadiusIncreaseNeeded;
-			
+					? nearestDistance
+					: minRadiusIncreaseNeeded;
+
 			Node child = chosen.node;
 			try {
 				child.addData(data, chosen.distance);
 				thisNode.updateRadius(child);
 			} catch(SplitNodeReplacement e) {
 				// Replace current child with new nodes
-				IndexItem ii = thisNode.children.remove(child.data);
-				assert ii != null;
-				
+				IndexItem removedNode = thisNode.children.remove(child.data);
+				assert removedNode != null;
+
 				for(int i = 0; i < e.newNodes.length; ++i) {
 					@SuppressWarnings("unchecked")
 					Node newChild = (Node) e.newNodes[i];
@@ -773,12 +782,12 @@ public class MTree<DATA> {
 				}
 			}
 		}
-		
+
 
 		public void addChild(IndexItem newChild_, double distance) {
 			@SuppressWarnings("unchecked")
 			Node newChild = (Node) newChild_;
-			
+
 			class ChildWithDistance {
 				Node child;
 				double distance;
@@ -787,32 +796,32 @@ public class MTree<DATA> {
 					this.distance = distance;
 				}
 			}
-			
+
 			Deque<ChildWithDistance> newChildren = new ArrayDeque<ChildWithDistance>();
 			newChildren.addFirst(new ChildWithDistance(newChild, distance));
-			
+
 			while(!newChildren.isEmpty()) {
 				ChildWithDistance cwd = newChildren.removeFirst();
-				
+
 				newChild = cwd.child;
 				distance = cwd.distance;
 				if(thisNode.children.containsKey(newChild.data)) {
 					@SuppressWarnings("unchecked")
 					Node existingChild = (Node) thisNode.children.get(newChild.data);
 					assert existingChild.data.equals(newChild.data);
-					
+
 					// Transfer the _children_ of the newChild to the existingChild
 					for(IndexItem grandchild : newChild.children.values()) {
 						existingChild.addChild(grandchild, grandchild.distanceToParent);
 					}
 					newChild.children.clear();
-					
+
 					try {
 						existingChild.checkMaxCapacity();
 					} catch(SplitNodeReplacement e) {
-						IndexItem ii = thisNode.children.remove(existingChild.data);
-						assert ii != null;
-						
+						IndexItem removedNode = thisNode.children.remove(existingChild.data);
+						assert removedNode != null;
+
 						for(int i = 0; i < e.newNodes.length; ++i) {
 							@SuppressWarnings("unchecked")
 							Node newNode = (Node) e.newNodes[i];
@@ -856,17 +865,17 @@ public class MTree<DATA> {
 					}
 				}
 			}
-			
+
 			throw new DataNotFound();
 		}
 
-		
+
 		private Node balanceChildren(Node theChild) {
 			// Tries to find anotherChild which can donate a grand-child to theChild.
-			
+
 			Node nearestDonor = null;
 			double distanceNearestDonor = Double.POSITIVE_INFINITY;
-			
+
 			Node nearestMergeCandidate = null;
 			double distanceNearestMergeCandidate = Double.POSITIVE_INFINITY;
 
@@ -892,17 +901,8 @@ public class MTree<DATA> {
 			if(nearestDonor == null) {
 				// Merge
 				for(IndexItem grandchild : theChild.children.values()) {
-                                    //if (thisNode == null) System.out.println("thisNode is null");
-                                    //if (thisNode.mtree() == null) System.out.println("thisNode.mtree() is null");
-                                    //if (grandchild == null) System.out.println("grandchild is null");
-                                    //if (grandchild.data == null) System.out.println("grandchild.data is null");                                
-                                    //if (nearestMergeCandidate == null) System.out.println("nearestMergeCandidate is null");                                
-                                    //if (nearestMergeCandidate.data == null) System.out.println("nearestMergeCandidate.data is null");
-
-                                    if (nearestMergeCandidate != null) { // ### added by mits
-                                        double distance = thisNode.mtree().distanceFunction.calculate(grandchild.data, nearestMergeCandidate.data);
-                                        nearestMergeCandidate.addChild(grandchild, distance); 
-                                    }                                    
+					double distance = thisNode.mtree().distanceFunction.calculate(grandchild.data, nearestMergeCandidate.data);
+					nearestMergeCandidate.addChild(grandchild, distance);
 				}
 
 				IndexItem removed = thisNode.children.remove(theChild.data);
@@ -921,8 +921,8 @@ public class MTree<DATA> {
 					}
 				}
 
-				IndexItem ii = nearestDonor.children.remove(nearestGrandchild.data);
-				assert ii != null;
+				IndexItem removedNode = nearestDonor.children.remove(nearestGrandchild.data);
+				assert removedNode != null;
 				theChild.addChild(nearestGrandchild, nearestGrandchildDistance);
 				return theChild;
 			}
@@ -931,17 +931,17 @@ public class MTree<DATA> {
 
 		public void _checkChildClass(IndexItem child) {
 			assert child instanceof MTree.InternalNode
-			    || child instanceof MTree.LeafNode;
+					|| child instanceof MTree.LeafNode;
 		}
 	}
 
 
 	private class RootLeafNode extends Node {
-		
+
 		private RootLeafNode(DATA data) {
 			super(data, new RootNodeTrait(), new LeafNodeTrait());
 		}
-		
+
 		void removeData(DATA data, double distance) throws RootNodeReplacement, DataNotFound {
 			try {
 				super.removeData(data, distance);
@@ -950,7 +950,7 @@ public class MTree<DATA> {
 				throw new RootNodeReplacement(null);
 			}
 		}
-		
+
 		protected int getMinCapacity() {
 			return 1;
 		}
@@ -965,7 +965,7 @@ public class MTree<DATA> {
 		private RootNode(DATA data) {
 			super(data, new RootNodeTrait(), new NonLeafNodeTrait());
 		}
-		
+
 		void removeData(DATA data, double distance) throws RootNodeReplacement, NodeUnderCapacity, DataNotFound {
 			try {
 				super.removeData(data, distance);
@@ -990,13 +990,13 @@ public class MTree<DATA> {
 				throw new RootNodeReplacement(newRoot);
 			}
 		}
-		
-		
+
+
 		@Override
 		protected int getMinCapacity() {
 			return 2;
 		}
-		
+
 		@Override
 		void _checkMinCapacity() {
 			assert children.size() >= 2;
