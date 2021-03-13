@@ -305,7 +305,7 @@ public class MCOD extends MCODBase {
     }
 
     public void ProcessNewStreamObjects(ArrayList<StreamObj> streamObjs) {
-        if (windowNodes.size() == windowSize) {
+        if (windowNodes.size() >= windowSize) {
             // If the window is full, perform a slide
             doSlide();
             // Process expired nodes

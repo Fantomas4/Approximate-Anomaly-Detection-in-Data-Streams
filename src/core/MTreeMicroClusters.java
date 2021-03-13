@@ -36,7 +36,7 @@ public class MTreeMicroClusters extends MTree<MicroCluster> {
     };
 
     public MTreeMicroClusters() {
-        super(500, DistanceFunctions.EUCLIDEAN,
+        super(25, DistanceFunctions.EUCLIDEAN,
                 new ComposedSplitFunction<MicroCluster>(
                 nonRandomPromotion,
                 new PartitionFunctions.BalancedPartition<MicroCluster>()));

@@ -36,7 +36,7 @@ class MTreeStreamObjects extends MTree<StreamObj> {
     };
 
     MTreeStreamObjects() {
-        super(2, DistanceFunctions.EUCLIDEAN,
+        super(25, DistanceFunctions.EUCLIDEAN,
                 new ComposedSplitFunction<StreamObj>(
                 nonRandomPromotion,
                 new PartitionFunctions.BalancedPartition<StreamObj>()));

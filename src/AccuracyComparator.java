@@ -32,7 +32,7 @@ public class AccuracyComparator {
         System.out.println("> MCOD - Number of pure outliers: "+ mcodSize);
         System.out.println("> ApproxMCOD - Number of pure outliers: "+ approxmcodSize);
         System.out.printf("> Number of MCOD's outliers detected by ApproxMCOD: %d (%.2f %%)\n", commonSize, percentageDetected);
-        System.out.println("--------------------------------------------------------------------------------");
+        System.out.println("----------------------------------------------------------------------------------------");
 
     }
 
