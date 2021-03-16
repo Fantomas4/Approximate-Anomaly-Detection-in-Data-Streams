@@ -16,19 +16,28 @@
 
 package core.mtree.utils;
 
-import java.util.*;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
 
 /**
  * Some utilities.
  */
 public final class Utils {
+	public static long peakUsedMemory = 0;
 
-    /**
-     * Don't let anyone instantiate this class.
-     */
+	private static final int MegaBytes = 1024*1024;
+
+	/**
+	 * Don't let anyone instantiate this class.
+	 */
 	private Utils() {}
 
-	
+
 	/**
 	 * Identifies the minimum and maximum elements from an iterable, according
 	 * to the natural ordering of the elements.
@@ -41,10 +50,10 @@ public final class Utils {
 		if(!iterator.hasNext()) {
 			return null;
 		}
-		
+
 		T min = iterator.next();
 		T max = min;
-		
+
 		while(iterator.hasNext()) {
 			T item = iterator.next();
 			if(item.compareTo(min) < 0) {
@@ -54,11 +63,11 @@ public final class Utils {
 				max = item;
 			}
 		}
-		
+
 		return new Pair<T>(min, max);
 	}
-	
-	
+
+
 	/**
 	 * Randomly chooses elements from the collection.
 	 * @param collection The collection.
@@ -82,5 +91,37 @@ public final class Utils {
 		}
 		return sample;
 	}
-	
+
+
+	public static Integer[] removeFirstElement(Integer[] x){
+
+		Integer[] r= new Integer[x.length-1];
+		for(int i = 1; i < x.length; i++){
+			r[i-1] = x[i];
+		}
+		return r;
+	}
+
+	public static void computeUsedMemory(){
+
+		long freeMemory = Runtime.getRuntime().freeMemory()/MegaBytes;
+		long totalMemory = Runtime.getRuntime().totalMemory()/MegaBytes;
+		long usedMemory = (totalMemory - freeMemory);
+
+
+
+		if(peakUsedMemory < usedMemory){
+			peakUsedMemory = usedMemory;
+
+		}
+//        System.out.println("Peak memory: " + peakUsedMemory);
+
+	}
+
+
+	public static long getCPUTime(){
+		ThreadMXBean bean = ManagementFactory.getThreadMXBean();
+		return bean.isCurrentThreadCpuTimeSupported()? bean.getCurrentThreadCpuTime(): 0L;
+	}
+
 }

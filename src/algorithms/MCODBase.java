@@ -6,6 +6,7 @@ import core.MicroCluster;
 import core.Outlier;
 import core.OutlierDetector;
 import core.ISBIndex.ISBNode;
+import core.ISBIndex.ISBNode.NodeType;
 
 import java.util.HashMap;
 import java.util.TreeSet;
@@ -121,16 +122,16 @@ public class MCODBase extends OutlierDetector {
         m_nOnlyOutlier = 0;
     }
 
-    protected void SetNodeType(ISBIndex.ISBNode node, ISBIndex.ISBNode.NodeType type) {
+    protected void SetNodeType(ISBNode node, NodeType type) {
         node.nodeType = type;
         // update statistics
-        if (type == ISBIndex.ISBNode.NodeType.OUTLIER)
+        if (type == NodeType.OUTLIER)
             node.nOutlier++;
         else
             node.nInlier++;
     }
 
-    protected void AddToEventQueue(ISBIndex.ISBNode x, ISBIndex.ISBNode nodeMinExp) {
+    protected void AddToEventQueue(ISBNode x, ISBNode nodeMinExp) {
         if (nodeMinExp != null) {
             Long expTime = GetExpirationTime(nodeMinExp);
             eventQueue.Insert(x, expTime);
@@ -142,7 +143,7 @@ public class MCODBase extends OutlierDetector {
     }
 
     protected int getNodeSlide(ISBNode node) {
-        // Since node IDs begin from 1, we subtract 1 from the id so that the modulo
+        // Since node IDs begin from 1, we subtract 1 from the id so that the integer division
         // operation always returns the correct slide the node belongs to.
         long adjustedID = node.id - 1;
 
@@ -156,15 +157,19 @@ public class MCODBase extends OutlierDetector {
         windowEnd += slideSize;
     }
 
-    protected void SaveOutlier(ISBIndex.ISBNode node) {
+    protected boolean IsSafeInlier(ISBNode node) {
+        return node.count_after >= m_k;
+    }
+
+    protected void SaveOutlier(ISBNode node) {
         node.nOutlier++; // update statistics
     }
 
-    protected void RemoveOutlier(ISBIndex.ISBNode node) {
+    protected void RemoveOutlier(ISBNode node) {
         node.nInlier++; // update statistics
     }
 
-    protected void AddNode(ISBIndex.ISBNode node) {
+    protected void AddNode(ISBNode node) {
         windowNodes.add(node);
     }
 
@@ -175,6 +180,26 @@ public class MCODBase extends OutlierDetector {
         // Check whether the node should be recorded as a pure outlier
         // by the outlier detector
         evaluateAsOutlier(node);
+    }
+
+    protected void AddMicroCluster(MicroCluster mc) {
+        mtreeMC.add(mc);
+        setMC.add(mc);
+    }
+
+    protected class CorruptedDataStateException extends Exception {
+        public CorruptedDataStateException(String errorMessage) {
+            super(errorMessage);
+        }
+    }
+
+    protected void RemoveMicroCluster(MicroCluster mc) throws CorruptedDataStateException {
+        boolean mtreeRemoval = mtreeMC.remove(mc);
+        boolean setMCRemoval = setMC.remove(mc);
+
+        if (mtreeRemoval != setMCRemoval) {
+            throw new CorruptedDataStateException("The target mc was removed from setMC but was not found in M-Tree");
+        }
     }
 
     protected void UpdateStatistics(ISBIndex.ISBNode node) {
@@ -210,7 +235,7 @@ public class MCODBase extends OutlierDetector {
         return results;
     }
 
-    protected double GetEuclideanDist(ISBIndex.ISBNode n1, ISBIndex.ISBNode n2)
+    protected double GetEuclideanDist(ISBNode n1, ISBNode n2)
     {
         double diff;
         double sum = 0;
@@ -222,7 +247,7 @@ public class MCODBase extends OutlierDetector {
         return Math.sqrt(sum);
     }
 
-    protected Vector<SearchResultMC> RangeSearchMC(ISBIndex.ISBNode nodeNew, double radius) {
+    protected Vector<SearchResultMC> RangeSearchMC(ISBNode nodeNew, double radius) {
         Vector<SearchResultMC> results = new Vector<SearchResultMC>();
         // create a dummy mc in order to search w.r.t. nodeNew
         MicroCluster dummy = new MicroCluster(nodeNew);

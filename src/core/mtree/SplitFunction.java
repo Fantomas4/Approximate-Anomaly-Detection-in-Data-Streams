@@ -16,14 +16,15 @@
 
 package core.mtree;
 
-import core.mtree.utils.Pair;
 import java.util.Set;
+
+import core.mtree.utils.Pair;
 
 /**
  * Defines an object to be used to split a node in an M-Tree. A node must be
  * split when it has reached its maximum capacity and a new child node would be
  * added to it.
- * 
+ *
  * <p>The splitting consists in choosing a pair of "promoted" data objects from
  * the children and then partition the set of children in two partitions
  * corresponding to the two promoted data objects.
@@ -34,7 +35,7 @@ public interface SplitFunction<DATA> {
 
 	/**
 	 * Processes the splitting of a node.
-	 * 
+	 *
 	 * @param dataSet A set of data that are keys to the children of the node
 	 *        to be split.
 	 * @param distanceFunction A {@linkplain DistanceFunction distance function}
@@ -43,8 +44,8 @@ public interface SplitFunction<DATA> {
 	 *         and a pair of corresponding partitions of the data objects.
 	 */
 	SplitResult<DATA> process(Set<DATA> dataSet, DistanceFunction<? super DATA> distanceFunction);
-	
-	
+
+
 	/**
 	 * An object used as the result for the
 	 * {@link SplitFunction#process(Set, DistanceFunction)} method.
@@ -57,7 +58,7 @@ public interface SplitFunction<DATA> {
 		 * A pair of promoted data objects.
 		 */
 		public Pair<DATA> promoted;
-		
+
 		/**
 		 * A pair of partitions corresponding to the {@code promoted} data
 		 * objects.
@@ -71,7 +72,7 @@ public interface SplitFunction<DATA> {
 			this.promoted = promoted;
 			this.partitions = partitions;
 		}
-		
+
 	}
-	
+
 }

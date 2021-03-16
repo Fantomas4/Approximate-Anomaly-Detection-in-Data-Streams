@@ -16,8 +16,9 @@
 
 package core.mtree;
 
-import core.mtree.utils.Pair;
 import java.util.Set;
+
+import core.mtree.utils.Pair;
 
 /**
  * An object with partitions a set of data into two sub-sets.
@@ -25,10 +26,10 @@ import java.util.Set;
  * @param <DATA> The type of the data on the sets.
  */
 public interface PartitionFunction<DATA> {
-	
+
 	/**
 	 * Executes the partitioning.
-	 * 
+	 *
 	 * @param promoted The pair of data objects that will guide the partition
 	 *        process.
 	 * @param dataSet The original set of data objects to be partitioned.
@@ -38,5 +39,5 @@ public interface PartitionFunction<DATA> {
 	 *         of the {@code promoted} data objects.
 	 */
 	Pair<Set<DATA>> process(Pair<DATA> promoted, Set<DATA> dataSet, DistanceFunction<? super DATA> distanceFunction);
-	
+
 }

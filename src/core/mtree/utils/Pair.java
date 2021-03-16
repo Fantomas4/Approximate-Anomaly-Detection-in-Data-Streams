@@ -22,23 +22,23 @@ package core.mtree.utils;
  * @param <T> The type of the objects.
  */
 public class Pair<T> {
-	
+
 	/**
 	 * The first object.
 	 */
 	public T first;
-	
-	
+
+
 	/**
 	 * The second object.
 	 */
 	public T second;
-	
+
 	/**
 	 * Creates a pair of {@code null} objects.
 	 */
 	public Pair() {}
-	
+
 	/**
 	 * Creates a pair with the objects specified in the arguments.
 	 * @param first  The first object.
@@ -60,9 +60,9 @@ public class Pair<T> {
 	 */
 	public T get(int index) throws IllegalArgumentException {
 		switch(index) {
-		case 0: return first;
-		case 1: return second;
-		default: throw new IllegalArgumentException();
+			case 0: return first;
+			case 1: return second;
+			default: throw new IllegalArgumentException();
 		}
 	}
 
