@@ -22,7 +22,7 @@ package core.lsh.families;
 
 import java.util.Comparator;
 
-import core.lsh.Vector;
+import core.lsh.Entry;
 
 /**
  * This comparator can be used to sort candidate neighbours according to their
@@ -31,9 +31,9 @@ import core.lsh.Vector;
  * 
  * @author Joren Six
  */
-public class DistanceComparator implements Comparator<Vector>{
+public class DistanceComparator implements Comparator<Entry<?>>{
 	
-	private final Vector query;
+	private final Entry<?> query;
 	private final DistanceMeasure distanceMeasure;
 	
 	/**
@@ -41,7 +41,7 @@ public class DistanceComparator implements Comparator<Vector>{
 	 * @param query The query vector. 
 	 * @param distanceMeasure The distance vector to use.
 	 */
-	public DistanceComparator(Vector query,DistanceMeasure distanceMeasure){
+	public DistanceComparator(Entry<?> query, DistanceMeasure distanceMeasure){
 		this.query = query;
 		this.distanceMeasure = distanceMeasure;
 	}
@@ -50,9 +50,9 @@ public class DistanceComparator implements Comparator<Vector>{
 	 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public int compare(Vector one, Vector other) {
-		Double oneDistance = distanceMeasure.distance(query,one);
-		Double otherDistance = distanceMeasure.distance(query,other);
+	public int compare(Entry<?> one, Entry<?> other) {
+		Double oneDistance = distanceMeasure.distance(query, one);
+		Double otherDistance = distanceMeasure.distance(query, other);
 		return oneDistance.compareTo(otherDistance);
 	}
 }

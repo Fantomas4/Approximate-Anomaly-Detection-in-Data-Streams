@@ -23,8 +23,6 @@ package core.lsh.families;
 import java.util.Arrays;
 import java.util.Random;
 
-import core.lsh.Vector;
-
 public class CityBlockHash implements HashFunction {
 	/**
 	 * 

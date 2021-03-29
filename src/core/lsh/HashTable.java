@@ -35,15 +35,13 @@ import core.lsh.families.HashFunction;
  * 
  * @author Joren Six
  */
-class HashTable implements Serializable {
-
-	private static final long serialVersionUID = -5410017645908038641L;
+class HashTable {
 
 	/**
 	 * Contains the mapping between a combination of a number of hashes (encoded
 	 * using an integer) and a list of possible nearest neighbours
 	 */
-	private HashMap<String,List<Vector>> hashTable;
+	private HashMap<String,List<Entry<?>>> hashTable;
 	private HashFunction[] hashFunctions;
 	private HashFamily family;
 	
@@ -58,7 +56,7 @@ class HashTable implements Serializable {
 	 *            functions, and is used therefore.
 	 */
 	public HashTable(int numberOfHashes,HashFamily family){
-		hashTable = new HashMap<String, List<Vector>>();
+		hashTable = new HashMap<>();
 		this.hashFunctions = new HashFunction[numberOfHashes];
 		for(int i=0;i<numberOfHashes;i++){
 			hashFunctions[i] = family.createHashFunction();
@@ -77,35 +75,46 @@ class HashTable implements Serializable {
 	 *         candidates are found, an empty list is returned, otherwise, the
 	 *         list of candidates is returned.
 	 */
-	public List<Vector> query(Vector query) {
+		public List<Entry<?>> query(Entry<?> query) {
 		String combinedHash = hash(query);
 		if(hashTable.containsKey(combinedHash))
 			return hashTable.get(combinedHash);
 		else
-			return new ArrayList<Vector>();
+			return new ArrayList<Entry<?>>();
 	}
 
 	/**
-	 * Add a vector to the index.
-	 * @param vector
+	 * Add an entry to the index.
+	 * @param entry
 	 */
-	public void add(Vector vector) {
-		String combinedHash = hash(vector);
+	public void add(Entry<?> entry) {
+		String combinedHash = hash(entry);
 		if(! hashTable.containsKey(combinedHash)){
-			hashTable.put(combinedHash, new ArrayList<Vector>());
+			hashTable.put(combinedHash, new ArrayList<Entry<?>>());
 		}
-		hashTable.get(combinedHash).add(vector);
+		hashTable.get(combinedHash).add(entry);
+	}
+
+	/**
+	 * Remove an entry from the index.
+	 * @param entry
+	 */
+	public void remove(Entry<?> entry) {
+		String combinedHash = hash(entry);
+		if(hashTable.containsKey(combinedHash)){
+			hashTable.remove(combinedHash, new ArrayList<Entry<?>>());
+		}
 	}
 	
 	/**
 	 * Calculate the combined hash for a vector.
-	 * @param vector The vector to calculate the combined hash for.
+	 * @param entry The vector to calculate the combined hash for.
 	 * @return An integer representing a combined hash.
 	 */
-	private String hash(Vector vector){
+	private String hash(Entry<?> entry){
 		int hashes[] = new int[hashFunctions.length];
 		for(int i = 0 ; i < hashFunctions.length ; i++){
-			hashes[i] = hashFunctions[i].hash(vector);
+			hashes[i] = hashFunctions[i].hash(entry);
 		}
 		String combinedHash = family.combine(hashes);
 		return combinedHash;

@@ -20,7 +20,7 @@
 
 package core.lsh.families;
 
-import core.lsh.Vector;
+import core.lsh.Entry;
 
 /**
  * A distance measure defines how distance is calculated, measured as it were, between two vectors.
@@ -35,5 +35,5 @@ public interface DistanceMeasure {
 	 * @param other The other vector
 	 * @return A value representing the distance between two vectors.
 	 */
-	double distance(Vector one, Vector other);
+	double distance(Entry<?> one, Entry<?> other);
 }

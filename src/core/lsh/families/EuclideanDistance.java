@@ -20,8 +20,6 @@
 
 package core.lsh.families;
 
-import core.lsh.Vector;
-
 /**
  * Calculates the <a
  * href="http://en.wikipedia.org/wiki/Euclidean_distance">Euclidean distance</a>

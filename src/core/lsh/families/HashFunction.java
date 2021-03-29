@@ -22,7 +22,7 @@ package core.lsh.families;
 
 import java.io.Serializable;
 
-import core.lsh.Vector;
+import core.lsh.Entry;
 
 /**
  * A hash function can hash a vector of arbitrary dimensions to an integer
@@ -40,11 +40,11 @@ public interface HashFunction extends Serializable {
 	 * scheme. Meaning that vectors that are 'close' according to some metric
 	 * have a high probability to end up with the same hash.
 	 * 
-	 * @param vector
+	 * @param entry
 	 *            The vector to hash. Can have any number of dimensions.
 	 * @return A locality sensitive hash (LSH). Vectors that are 'close'
 	 *         according to some metric have a high probability to end up with
 	 *         the same hash.
 	 */
-	int hash(Vector vector);
+	int hash(Entry entry);
 }

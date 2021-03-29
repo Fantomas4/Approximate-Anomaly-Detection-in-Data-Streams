@@ -20,8 +20,6 @@
 
 package core.lsh.families;
 
-import core.lsh.Vector;
-
 /**
  * This distance measure calculates the city block distance between two vectors. This distance metric also known as the Manhattan distance or L<sub>1</sub> distance.
  * Wikipedia calls it <a href="http://en.wikipedia.org/wiki/Taxicab_geometry">"Taxicab geometry"</a>:

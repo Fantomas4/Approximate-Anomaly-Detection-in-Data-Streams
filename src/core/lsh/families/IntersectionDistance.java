@@ -20,8 +20,6 @@
 
 package core.lsh.families;
 
-import core.lsh.Vector;
-
 /**
  * <p>
  * Calculates the intersection of one vector with an other vector. Intersection

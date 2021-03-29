@@ -22,8 +22,6 @@ package core.lsh.families;
 
 import java.util.Random;
 
-import core.lsh.Vector;
-
 public class CosineHash implements HashFunction{
 	/**
 	 * 

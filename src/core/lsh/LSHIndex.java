@@ -52,11 +52,11 @@ import core.lsh.util.FileUtils;
  * 
  * @author Joren Six
  */
-public class Index implements Serializable{
+public class LSHIndex implements Serializable{
 	
 	private static final long serialVersionUID = 3757702142917691272L;
 
-	private final static Logger LOG = Logger.getLogger(Index.class.getName()); 
+	private final static Logger LOG = Logger.getLogger(LSHIndex.class.getName());
 
 	private HashFamily family;
 	private List<HashTable> hashTable; 
@@ -76,7 +76,7 @@ public class Index implements Serializable{
 	 *            number of hash tables. Memory use also increases. Time needed
 	 *            to compute a hash also increases marginally.
 	 */
-	public Index(HashFamily family,int numberOfHashes, int numberOfHashTables){
+	public LSHIndex(HashFamily family, int numberOfHashes, int numberOfHashTables){
 		this.family = family;
 		hashTable = new ArrayList<HashTable>();
 		for(int i = 0 ; i < numberOfHashTables ; i++ ){
@@ -86,15 +86,27 @@ public class Index implements Serializable{
 	}
 	
 	/**
-	 * Add a vector to the current index. The hashes are calculated with the
+	 * Add an entry to the current index. The hashes are calculated with the
 	 * current hash family and added in the right place.
 	 * 
-	 * @param vector
-	 *            The vector to add.
+	 * @param entry The entry to add.
+	 *
 	 */
-	public void index(Vector vector) {
+	public void add(Entry<?> entry) {
 		for (HashTable table : hashTable) {
-			table.add(vector);
+			table.add(entry);
+		}
+	}
+
+	/**
+	 * Remove an entry from the current index. 
+	 *
+	 * @param entry The entry to remove.
+	 *
+	 */
+	public void remove(Entry<?> entry) {
+		for (HashTable table : hashTable) {
+			table.remove(entry);
 		}
 	}
 	
@@ -128,13 +140,13 @@ public class Index implements Serializable{
 	 * @return A list of nearest neighbours, the number of neighbours returned
 	 *         lays between zero and a chosen maximum.
 	 */
-	public List<Vector> query(final Vector query,int maxSize){
-		Set<Vector> candidateSet = new HashSet<Vector>();
+	public List<Entry<?>> query(final Entry<?> query,int maxSize){
+		Set<Entry<?>> candidateSet = new HashSet<Entry<?>>();
 		for(HashTable table : hashTable){
-			List<Vector> v = table.query(query);
+			List<Entry<?>> v = table.query(query);
 			candidateSet.addAll(v);
 		}
-		List<Vector>candidates = new ArrayList<Vector>(candidateSet);
+		List<Entry<?>>candidates = new ArrayList<Entry<?>>(candidateSet);
 		evaluated += candidates.size();
 		DistanceMeasure measure = family.createDistanceMeasure();
 		DistanceComparator dc = new DistanceComparator(query, measure);
@@ -156,17 +168,17 @@ public class Index implements Serializable{
 	
 	
 	/**
-	 * Serializes the index to disk.
-	 * @param index the storage object.
+	 * Serializes the LSHIndex to disk.
+	 * @param LSHIndex the storage object.
 	 */
-	public static void serialize(Index index){
+	public static void serialize(LSHIndex LSHIndex){
 		try {
-			String serializationFile = serializationName(index);;
+			String serializationFile = serializationName(LSHIndex);;
 			OutputStream file = new FileOutputStream(serializationFile);
 			OutputStream buffer = new BufferedOutputStream(file);
 			ObjectOutput output = new ObjectOutputStream(buffer);
 			try {
-				output.writeObject(index);
+				output.writeObject(LSHIndex);
 			} finally {
 				output.close();
 			}
@@ -177,13 +189,13 @@ public class Index implements Serializable{
 	
 	/**
 	 * Return a unique name for a hash table wit a family and number of hashes. 
-	 * @param index the hash table.
+	 * @param LSHIndex the hash table.
 	 * @return e.g. "be.hogent.tarsos.lsh.CosineHashfamily_16.bin"
 	 */
-	private static String serializationName(Index index){
-		String name = index.family.getClass().getName();
-		int numberOfHashes = index.getNumberOfHashes();
-		int numberOfHashTables = index.getNumberOfHashTables();
+	private static String serializationName(LSHIndex LSHIndex){
+		String name = LSHIndex.family.getClass().getName();
+		int numberOfHashes = LSHIndex.getNumberOfHashes();
+		int numberOfHashTables = LSHIndex.getNumberOfHashTables();
 		return name + "_" + numberOfHashes + "_" + numberOfHashTables + ".bin";
 	}
 	
@@ -197,9 +209,9 @@ public class Index implements Serializable{
 	 * @param numberOfHashTables The number of hash tables
 	 * @return a new, or deserialized object.
 	 */
-	public static Index deserialize(HashFamily family,int numberOfHashes,int numberOfHashTables){
-		Index index = new Index(family,numberOfHashes,numberOfHashTables);
-		String serializationFile = serializationName(index);
+	public static LSHIndex deserialize(HashFamily family, int numberOfHashes, int numberOfHashTables){
+		LSHIndex LSHIndex = new LSHIndex(family,numberOfHashes,numberOfHashTables);
+		String serializationFile = serializationName(LSHIndex);
 		if(FileUtils.exists(serializationFile)){
 			try {
 				
@@ -207,7 +219,7 @@ public class Index implements Serializable{
 				InputStream buffer = new BufferedInputStream(file);
 				ObjectInput input = new ObjectInputStream(buffer);
 				try {
-					index = (Index) input.readObject();
+					LSHIndex = (LSHIndex) input.readObject();
 				} finally {
 					input.close();
 				}
@@ -218,7 +230,7 @@ public class Index implements Serializable{
 				ex.printStackTrace();
 			}
 		}
-		return index;
+		return LSHIndex;
 	}
 
 }

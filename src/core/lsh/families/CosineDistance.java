@@ -42,8 +42,6 @@
 */
 package core.lsh.families;
 
-import core.lsh.Vector;
-
 public class CosineDistance implements DistanceMeasure {
 
 	@Override
