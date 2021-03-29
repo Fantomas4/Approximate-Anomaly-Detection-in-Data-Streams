@@ -37,6 +37,10 @@ public class StreamObj implements DistanceFunctions.EuclideanCoordinate, Compara
         this.hashCode = h;
     }
 
+    public double[] getValues() {
+        return values;
+    }
+
     @Override
     public int dimensions() {
         return values.length;

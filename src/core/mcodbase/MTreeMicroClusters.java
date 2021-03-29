@@ -1,5 +1,5 @@
 /*
- *    MTreeStreamObjects.java
+ *    MTreeMicroClusters.java
  *    Copyright (C) 2013 Aristotle University of Thessaloniki, Greece
  *    @author D. Georgiadis, A. Gounaris, A. Papadopoulos, K. Tsichlas, Y. Manolopoulos
  *
@@ -18,42 +18,42 @@
  *    
  */
 
-package core;
+package core.mcodbase;
 
 import core.mtree.*;
 import core.mtree.utils.Pair;
 import core.mtree.utils.Utils;
 import java.util.Set;
 
-class MTreeStreamObjects extends MTree<StreamObj> {
+public class MTreeMicroClusters extends MTree<MicroCluster> {
 
-    private static final PromotionFunction<StreamObj> nonRandomPromotion = new PromotionFunction<StreamObj>() {
+    private static final PromotionFunction<MicroCluster> nonRandomPromotion = new PromotionFunction<MicroCluster>() {
 
         @Override
-        public Pair<StreamObj> process(Set<StreamObj> dataSet, DistanceFunction<? super StreamObj> distanceFunction) {
+        public Pair<MicroCluster> process(Set<MicroCluster> dataSet, DistanceFunction<? super MicroCluster> distanceFunction) {
             return Utils.minMax(dataSet);
         }
     };
 
-    MTreeStreamObjects() {
+    public MTreeMicroClusters() {
         super(25, DistanceFunctions.EUCLIDEAN,
-                new ComposedSplitFunction<StreamObj>(
+                new ComposedSplitFunction<MicroCluster>(
                 nonRandomPromotion,
-                new PartitionFunctions.BalancedPartition<StreamObj>()));
+                new PartitionFunctions.BalancedPartition<MicroCluster>()));
     }
 
-    public void add(StreamObj data) {
+    public void add(MicroCluster data) {
         super.add(data);
         _check();
     }
 
-    public boolean remove(StreamObj data) {
+    public boolean remove(MicroCluster data) {
         boolean result = super.remove(data);
         _check();
         return result;
     }
 
-    DistanceFunction<? super StreamObj> getDistanceFunction() {
+    DistanceFunction<? super MicroCluster> getDistanceFunction() {
         return distanceFunction;
     }
 };

@@ -5,7 +5,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import core.ISBIndex.ISBNode;
+import core.mcodbase.ISBIndex.ISBNode;
 
 
 public class OutlierDetector {

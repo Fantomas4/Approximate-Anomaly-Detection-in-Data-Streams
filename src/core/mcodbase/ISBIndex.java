@@ -18,8 +18,10 @@
  *    
  */
 
-package core;
+package core.mcodbase;
 
+
+import core.StreamObj;
 
 import java.util.*;
 

@@ -41,7 +41,7 @@ class HashTable {
 	 * Contains the mapping between a combination of a number of hashes (encoded
 	 * using an integer) and a list of possible nearest neighbours
 	 */
-	private HashMap<String,List<Entry<?>>> hashTable;
+	private HashMap<String,List<Entry>> hashTable;
 	private HashFunction[] hashFunctions;
 	private HashFamily family;
 	
@@ -75,22 +75,22 @@ class HashTable {
 	 *         candidates are found, an empty list is returned, otherwise, the
 	 *         list of candidates is returned.
 	 */
-		public List<Entry<?>> query(Entry<?> query) {
+		public List<Entry> query(Entry query) {
 		String combinedHash = hash(query);
 		if(hashTable.containsKey(combinedHash))
 			return hashTable.get(combinedHash);
 		else
-			return new ArrayList<Entry<?>>();
+			return new ArrayList<Entry>();
 	}
 
 	/**
 	 * Add an entry to the index.
 	 * @param entry
 	 */
-	public void add(Entry<?> entry) {
+	public void add(Entry entry) {
 		String combinedHash = hash(entry);
 		if(! hashTable.containsKey(combinedHash)){
-			hashTable.put(combinedHash, new ArrayList<Entry<?>>());
+			hashTable.put(combinedHash, new ArrayList<Entry>());
 		}
 		hashTable.get(combinedHash).add(entry);
 	}
@@ -99,10 +99,10 @@ class HashTable {
 	 * Remove an entry from the index.
 	 * @param entry
 	 */
-	public void remove(Entry<?> entry) {
+	public void remove(Entry entry) {
 		String combinedHash = hash(entry);
 		if(hashTable.containsKey(combinedHash)){
-			hashTable.remove(combinedHash, new ArrayList<Entry<?>>());
+			hashTable.remove(combinedHash, new ArrayList<Entry>());
 		}
 	}
 	
@@ -111,7 +111,7 @@ class HashTable {
 	 * @param entry The vector to calculate the combined hash for.
 	 * @return An integer representing a combined hash.
 	 */
-	private String hash(Entry<?> entry){
+	private String hash(Entry entry){
 		int hashes[] = new int[hashFunctions.length];
 		for(int i = 0 ; i < hashFunctions.length ; i++){
 			hashes[i] = hashFunctions[i].hash(entry);

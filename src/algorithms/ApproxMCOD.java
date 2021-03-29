@@ -21,10 +21,10 @@
 package algorithms;
 
 
-import core.ISBIndex.ISBNode;
-import core.ISBIndex.ISBSearchResult;
-import core.ISBIndex.ISBNode.NodeType;
-import core.MicroCluster;
+import core.mcodbase.ISBIndex.ISBNode;
+import core.mcodbase.ISBIndex.ISBSearchResult;
+import core.mcodbase.ISBIndex.ISBNode.NodeType;
+import core.mcodbase.MicroCluster;
 import core.StreamObj;
 
 import java.util.*;

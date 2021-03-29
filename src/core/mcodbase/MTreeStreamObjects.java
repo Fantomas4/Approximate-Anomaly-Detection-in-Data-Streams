@@ -1,5 +1,5 @@
 /*
- *    MTreeMicroClusters.java
+ *    MTreeStreamObjects.java
  *    Copyright (C) 2013 Aristotle University of Thessaloniki, Greece
  *    @author D. Georgiadis, A. Gounaris, A. Papadopoulos, K. Tsichlas, Y. Manolopoulos
  *
@@ -18,42 +18,43 @@
  *    
  */
 
-package core;
+package core.mcodbase;
 
+import core.StreamObj;
 import core.mtree.*;
 import core.mtree.utils.Pair;
 import core.mtree.utils.Utils;
 import java.util.Set;
 
-public class MTreeMicroClusters extends MTree<MicroCluster> {
+class MTreeStreamObjects extends MTree<StreamObj> {
 
-    private static final PromotionFunction<MicroCluster> nonRandomPromotion = new PromotionFunction<MicroCluster>() {
+    private static final PromotionFunction<StreamObj> nonRandomPromotion = new PromotionFunction<StreamObj>() {
 
         @Override
-        public Pair<MicroCluster> process(Set<MicroCluster> dataSet, DistanceFunction<? super MicroCluster> distanceFunction) {
+        public Pair<StreamObj> process(Set<StreamObj> dataSet, DistanceFunction<? super StreamObj> distanceFunction) {
             return Utils.minMax(dataSet);
         }
     };
 
-    public MTreeMicroClusters() {
+    MTreeStreamObjects() {
         super(25, DistanceFunctions.EUCLIDEAN,
-                new ComposedSplitFunction<MicroCluster>(
+                new ComposedSplitFunction<StreamObj>(
                 nonRandomPromotion,
-                new PartitionFunctions.BalancedPartition<MicroCluster>()));
+                new PartitionFunctions.BalancedPartition<StreamObj>()));
     }
 
-    public void add(MicroCluster data) {
+    public void add(StreamObj data) {
         super.add(data);
         _check();
     }
 
-    public boolean remove(MicroCluster data) {
+    public boolean remove(StreamObj data) {
         boolean result = super.remove(data);
         _check();
         return result;
     }
 
-    DistanceFunction<? super MicroCluster> getDistanceFunction() {
+    DistanceFunction<? super StreamObj> getDistanceFunction() {
         return distanceFunction;
     }
 };

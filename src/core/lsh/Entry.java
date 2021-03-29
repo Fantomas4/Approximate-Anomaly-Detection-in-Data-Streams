@@ -20,9 +20,9 @@
 
 package core.lsh;
 
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Random;
+import core.StreamObj;
+
+import java.util.*;
 
 /**
  * An Entry contains a vector of 'dimension' values and an object. The object serves as the main data
@@ -30,20 +30,23 @@ import java.util.Random;
  *
  * @author Joren Six
  */
-public class Entry<Data> implements Serializable {
-
-    private static final long serialVersionUID = 5169504339456492327L;
+public class Entry implements Comparable<Entry> {
+    public static enum EntryType { OUTLIER, INLIER }
 
     /**
      * Values are stored here.
      */
     private double[] values;
 
+    public StreamObj obj;
+    public Long id;
+    public int count_after;
+    public EntryType entryType;
+    private ArrayList<Entry> nn_before;
 
-    /**
-     * The data object of the entry is stored here.
-     */
-    private Data obj;
+    // statistics
+    public int nOutlier;
+    public int nInlier;
 
 
     /**
@@ -69,16 +72,101 @@ public class Entry<Data> implements Serializable {
 //        this(other.getKey(),Arrays.copyOf(other.values, other.values.length));
 //    }
 
-    /**
-     * Creates an entry with the values and a key
-     * @param key The key of the entry.
-     * @param values The values of the entry's vector.
-     */
-    public Entry(String key, double[] values, Data obj){
+    public Entry(String key, Long id, StreamObj obj){
         this.key = key;
-        this.values = values;
+        this.id = id;
         this.obj = obj;
+        if (obj != null) {this.values = obj.getValues();}
+
+        // init statistics
+        nOutlier = 0;
+        nInlier  = 0;
+
+        // init other fields
+        InitNode();
     }
+
+    public void InitNode() {
+        this.count_after = 0;
+        this.entryType = EntryType.OUTLIER;
+        this.nn_before   = new ArrayList<>();
+    }
+
+    @Override
+    public int compareTo(Entry t) {
+        if (this.id > t.id)
+            return +1;
+        else if (this.id < t.id)
+            return -1;
+        return 0;
+    }
+
+    public void AddPrecNeigh(Entry entry) {
+        int pos = Collections.binarySearch(nn_before, entry);
+        if (pos < 0) {
+            // item does not exist, so add it to the right position
+            nn_before.add(-(pos + 1), entry);
+        }
+    }
+
+    public void RemovePrecNeigh(Entry entry) {
+        int pos = Collections.binarySearch(nn_before, entry);
+        if (pos >= 0) {
+            // item exists
+            nn_before.remove(pos);
+        }
+    }
+
+    public Entry GetMinPrecNeigh(Long sinceId) {
+        if (nn_before.size() > 0) {
+            int startPos;
+            Entry dummy = new Entry(null, sinceId,null);
+
+            int pos = Collections.binarySearch(nn_before, dummy);
+            if (pos < 0) {
+                // item does not exist, should insert at position startPos
+                startPos = -(pos + 1);
+            } else {
+                // item exists at startPos
+                startPos = pos;
+            }
+
+            if (startPos < nn_before.size()) {
+                return nn_before.get(startPos);
+            }
+        }
+        return null;
+    }
+
+    public int CountPrecNeighs(Long sinceId) {
+        if (nn_before.size() > 0) {
+            // get number of neighs with id >= sinceId
+            int startPos;
+            Entry dummy = new Entry(null, sinceId, null);
+            int pos = Collections.binarySearch(nn_before, dummy);
+            if (pos < 0) {
+                // item does not exist, should insert at position startPos
+                startPos = -(pos + 1);
+            } else {
+                // item exists at startPos
+                startPos = pos;
+            }
+
+            if (startPos < nn_before.size()) {
+                return nn_before.size() - startPos;
+            }
+        }
+        return 0;
+    }
+
+    public List<Entry> Get_nn_before() {
+        return nn_before;
+    }
+
+
+
+
+
 
     /**
      * Moves the Entry's vector slightly, adds a value selected from -radius to +radius to each element.
@@ -124,7 +212,7 @@ public class Entry<Data> implements Serializable {
     /**
      * @return The data object of this entry.
      */
-    public Data getObj() {
+    public StreamObj getObj() {
         return obj;
     }
 
@@ -138,7 +226,7 @@ public class Entry<Data> implements Serializable {
      * @exception ArrayIndexOutOfBoundsException
      *                when the two vectors do not have the same dimensions.
      */
-    public double dot(Entry<Data> other) {
+    public double dot(Entry other) {
         double sum = 0.0;
         for(int i=0; i < getDimensions(); i++) {
             sum += values[i] * other.values[i];

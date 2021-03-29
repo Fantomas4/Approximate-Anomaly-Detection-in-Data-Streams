@@ -1,6 +1,6 @@
 package core;
 
-import core.ISBIndex.ISBNode;
+import core.mcodbase.ISBIndex.ISBNode;
 
 public class Outlier implements Comparable<Outlier> {
     public long id;

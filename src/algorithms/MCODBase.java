@@ -1,12 +1,11 @@
 package algorithms;
 
-import core.ISBIndex;
-import core.MTreeMicroClusters;
-import core.MicroCluster;
-import core.Outlier;
+import core.mcodbase.ISBIndex;
+import core.mcodbase.MTreeMicroClusters;
+import core.mcodbase.MicroCluster;
 import core.OutlierDetector;
-import core.ISBIndex.ISBNode;
-import core.ISBIndex.ISBNode.NodeType;
+import core.mcodbase.ISBIndex.ISBNode;
+import core.mcodbase.ISBIndex.ISBNode.NodeType;
 
 import java.util.HashMap;
 import java.util.TreeSet;
