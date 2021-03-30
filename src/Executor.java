@@ -103,10 +103,10 @@ public class Executor {
         // Evaluate the non-expired nodes still in the window in order to record
         // the nodes that are pure outliers.
         if (chosenAlgorithm.equals("MCOD")) {
-            mcodObj.evaluateRemainingNodesInWin();
+            mcodObj.evaluateRemainingElemsInWin();
 
         } else if (chosenAlgorithm.equals("ApproxMCOD")) {
-            approxMCODObj.evaluateRemainingNodesInWin();
+            approxMCODObj.evaluateRemainingElemsInWin();
         }
 
         Set<Outlier> outliersDetected;

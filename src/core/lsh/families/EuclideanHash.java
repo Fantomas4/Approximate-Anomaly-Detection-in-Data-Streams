@@ -20,6 +20,8 @@
 
 package core.lsh.families;
 
+import core.lsh.Entry;
+
 import java.util.Random;
 
 public class EuclideanHash implements HashFunction{
@@ -27,7 +29,7 @@ public class EuclideanHash implements HashFunction{
 	 * 
 	 */
 	private static final long serialVersionUID = -3784656820380622717L;
-	private Vector randomProjection;
+	private Entry randomProjection;
 	private int offset;
 	private int w;
 	
@@ -36,7 +38,7 @@ public class EuclideanHash implements HashFunction{
 		this.w = w;
 		this.offset = rand.nextInt(w);
 		
-		randomProjection = new Vector(dimensions);
+		randomProjection = new Entry(dimensions);
 		for(int d=0; d<dimensions; d++) {
 			//mean 0
 			//standard deviation 1.0
@@ -45,7 +47,7 @@ public class EuclideanHash implements HashFunction{
 		}
 	}
 	
-	public int hash(Vector vector){
+	public int hash(Entry vector){
 		double hashValue = (vector.dot(randomProjection)+offset)/Double.valueOf(w);
 		return (int) Math.round(hashValue);
 	}

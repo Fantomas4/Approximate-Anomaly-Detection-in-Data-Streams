@@ -21,40 +21,28 @@
 package core.mcodbase;
 
 
+import core.DataObj;
 import core.StreamObj;
 
 import java.util.*;
 
 
 public class ISBIndex {
-    public static class ISBNode implements Comparable<ISBNode> {
+    public static class ISBNode extends DataObj<ISBNode> implements Comparable<ISBNode> {
         public static enum NodeType { OUTLIER, INLIER_MC, INLIER_PD }
-        
-        public StreamObj obj;
-        public Long id;
+
         public MicroCluster mc;
         public Set<MicroCluster> Rmc;
-        public int count_after;
         public NodeType nodeType;
-        private ArrayList<ISBNode> nn_before;
-        
-        // statistics
-        public int nOutlier;
-        public int nInlier;
-        
+
 
         public ISBNode(StreamObj obj, Long id) {
-            this.obj  = obj;
-            this.id   = id;
-            
-            // init statistics
-            nOutlier = 0;
-            nInlier  = 0;
-            
+            super(id, obj);
+
             // init other fields
             InitNode();
-        }  
-        
+        }
+
         public void InitNode() {
             this.mc          = null;
             this.Rmc         = new TreeSet<MicroCluster>();
@@ -62,7 +50,7 @@ public class ISBIndex {
             this.nodeType    = NodeType.INLIER_PD;
             this.nn_before   = new ArrayList<ISBNode>();
         }
-        
+
         @Override
         public int compareTo(ISBNode t) {
             if (this.id > t.id)
@@ -71,7 +59,7 @@ public class ISBIndex {
                 return -1;
             return 0;
         }
-        
+
         public void AddPrecNeigh(ISBNode node) {
             int pos = Collections.binarySearch(nn_before, node);
             if (pos < 0) {
@@ -79,7 +67,7 @@ public class ISBIndex {
                 nn_before.add(-(pos + 1), node);
             }
         }
-        
+
         public void RemovePrecNeigh(ISBNode node) {
             int pos = Collections.binarySearch(nn_before, node);
             if (pos >= 0) {
@@ -87,12 +75,12 @@ public class ISBIndex {
                 nn_before.remove(pos);
             }
         }
-        
+
         public ISBNode GetMinPrecNeigh(Long sinceId) {
-            if (nn_before.size() > 0) {                
+            if (nn_before.size() > 0) {
                 int startPos;
                 ISBNode dummy = new ISBNode(null, sinceId);
-                
+
                 int pos = Collections.binarySearch(nn_before, dummy);
                 if (pos < 0) {
                     // item does not exist, should insert at position startPos
@@ -101,14 +89,14 @@ public class ISBIndex {
                     // item exists at startPos
                     startPos = pos;
                 }
-                
+
                 if (startPos < nn_before.size()) {
                     return nn_before.get(startPos);
                 }
             }
             return null;
         }
-        
+
         public int CountPrecNeighs(Long sinceId) {
             if (nn_before.size() > 0) {
                 // get number of neighs with id >= sinceId
@@ -122,19 +110,19 @@ public class ISBIndex {
                     // item exists at startPos
                     startPos = pos;
                 }
-                
+
                 if (startPos < nn_before.size()) {
                     return nn_before.size() - startPos;
                 }
             }
             return 0;
         }
-        
+
         public List<ISBNode> Get_nn_before() {
             return nn_before;
         }
     }
-    
+
     MTreeStreamObjects mtree;
     Map<Integer, Set<ISBNode>> mapNodes;
     double m_radius;

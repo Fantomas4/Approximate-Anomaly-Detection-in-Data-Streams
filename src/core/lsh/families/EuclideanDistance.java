@@ -20,6 +20,8 @@
 
 package core.lsh.families;
 
+import core.lsh.Entry;
+
 /**
  * Calculates the <a
  * href="http://en.wikipedia.org/wiki/Euclidean_distance">Euclidean distance</a>
@@ -34,7 +36,7 @@ public class EuclideanDistance implements DistanceMeasure {
 	 * @see be.hogent.tarsos.lsh.families.DistanceMeasure#distance(be.hogent.tarsos.lsh.Vector, be.hogent.tarsos.lsh.Vector)
 	 */
 	@Override
-	public double distance(Vector one, Vector other) {
+	public double distance(Entry one, Entry other) {
 		double sum = 0.0;
 		for(int d = 0 ; d < one.getDimensions() ; d++) {
 			double delta = one.get(d) - other.get(d);

@@ -49,7 +49,7 @@ public class MCOD extends MCODBase {
 
     void AddNeighbor(ISBNode node, ISBNode q, boolean bUpdateState) {
         // check if q still in window
-        if (IsNodeIdInWin(q.id) == false) {
+        if (IsElemInWindow(q.id) == false) {
             return;
         }
 
@@ -238,7 +238,7 @@ public class MCOD extends MCODBase {
             e = eventQueue.ExtractMin();
             ISBNode x = e.node;
             // node x must be in window and not in any micro-cluster
-            boolean bValid = ( IsNodeIdInWin(x.id) && (x.mc == null) );
+            boolean bValid = ( IsElemInWindow(x.id) && (x.mc == null) );
             if (bValid) {
                 // remove nodeExpired from x.nn_before
                 x.RemovePrecNeigh(nodeExpired);
@@ -305,7 +305,7 @@ public class MCOD extends MCODBase {
     }
 
     public void ProcessNewStreamObjects(ArrayList<StreamObj> streamObjs) {
-        if (windowNodes.size() >= windowSize) {
+        if (windowElements.size() >= windowSize) {
             // If the window is full, perform a slide
             doSlide();
             // Process expired nodes
@@ -333,13 +333,13 @@ public class MCOD extends MCODBase {
         System.out.println("DIAG - Total -ACTIVE- MCs: " + setMC.size());
         System.out.println("DIAG - Total -ACTIVE- PD List Population: " + ISB_PD.GetSize());
         System.out.println("DIAG - TEMP OUTLIER SET SIZE: " + GetOutliersFound().size());
-        System.out.println("DIAG - TEMP Window size is: " + windowNodes.size());
+        System.out.println("DIAG - TEMP Window size is: " + windowElements.size());
         System.out.println("-------------------------------------------------------");
     }
 
     private ArrayList<ISBNode> GetExpiredNodes() {
         ArrayList<ISBNode> expiredNodes = new ArrayList<>();
-        for (ISBNode node : windowNodes) {
+        for (ISBNode node : windowElements) {
             // check if node has expired
             if (node.id < windowStart) {
                 expiredNodes.add(node);

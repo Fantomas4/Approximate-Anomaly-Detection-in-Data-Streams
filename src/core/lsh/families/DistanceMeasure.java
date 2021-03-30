@@ -35,5 +35,5 @@ public interface DistanceMeasure {
 	 * @param other The other vector
 	 * @return A value representing the distance between two vectors.
 	 */
-	double distance(Entry<?> one, Entry<?> other);
+	double distance(Entry one, Entry other);
 }

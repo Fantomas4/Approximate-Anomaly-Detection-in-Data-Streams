@@ -5,10 +5,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import core.mcodbase.ISBIndex.ISBNode;
 
-
-public class OutlierDetector {
+public class OutlierDetector<T extends DataObj<?>> {
     protected static final Long FIRST_OBJ_ID = 1L;
 
     // ID indicating the window's starting object
@@ -19,14 +17,14 @@ public class OutlierDetector {
     protected int windowSize;
     protected int slideSize;
     // list used to find expired nodes
-    protected Vector<ISBNode> windowNodes;
+    public Vector<T> windowElements;
 
     public OutlierDetector(int windowSize, int slideSize) {
         outliersFound = new TreeSet<Outlier>();
 
         this.windowSize = windowSize;
         // create nodes list of window
-        windowNodes = new Vector<ISBNode>();
+        windowElements = new Vector<>();
         this.windowStart = FIRST_OBJ_ID;
         this.windowEnd = (long) windowSize;
         
@@ -34,7 +32,7 @@ public class OutlierDetector {
 
     }
 
-    protected boolean IsNodeIdInWin(long id) {
+    protected boolean IsElemInWindow(long id) {
         Long start = windowStart;
         if ( (start <= id) && (id <= windowEnd) )
             return true;
@@ -42,16 +40,16 @@ public class OutlierDetector {
             return false;
     }
 
-    public void evaluateRemainingNodesInWin() {
-        for (ISBNode node : windowNodes) {
-            evaluateAsOutlier(node);
+    public void evaluateRemainingElemsInWin() {
+        for (T elem : windowElements) {
+            evaluateAsOutlier(elem);
         }
     }
 
-    public void evaluateAsOutlier(ISBNode node) {
-        if (node.nOutlier > 0 && node.nInlier == 0) {
+    public void evaluateAsOutlier(T elem) {
+        if (elem.nOutlier > 0 && elem.nInlier == 0) {
             // node is a pure outlier, so we record it
-            recordOutlier(new Outlier(node));
+            recordOutlier(new Outlier(elem));
         }
     }
 

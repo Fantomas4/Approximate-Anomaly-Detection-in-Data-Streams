@@ -31,9 +31,9 @@ import core.lsh.Entry;
  * 
  * @author Joren Six
  */
-public class DistanceComparator implements Comparator<Entry<?>>{
+public class DistanceComparator implements Comparator<Entry>{
 	
-	private final Entry<?> query;
+	private final Entry query;
 	private final DistanceMeasure distanceMeasure;
 	
 	/**
@@ -41,7 +41,7 @@ public class DistanceComparator implements Comparator<Entry<?>>{
 	 * @param query The query vector. 
 	 * @param distanceMeasure The distance vector to use.
 	 */
-	public DistanceComparator(Entry<?> query, DistanceMeasure distanceMeasure){
+	public DistanceComparator(Entry query, DistanceMeasure distanceMeasure){
 		this.query = query;
 		this.distanceMeasure = distanceMeasure;
 	}
@@ -50,7 +50,7 @@ public class DistanceComparator implements Comparator<Entry<?>>{
 	 * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
 	 */
 	@Override
-	public int compare(Entry<?> one, Entry<?> other) {
+	public int compare(Entry one, Entry other) {
 		Double oneDistance = distanceMeasure.distance(query, one);
 		Double otherDistance = distanceMeasure.distance(query, other);
 		return oneDistance.compareTo(otherDistance);

@@ -54,8 +54,6 @@ import core.lsh.families.HashFamily;
  */
 public class LSHIndex {
 
-	private final static Logger LOG = Logger.getLogger(LSHIndex.class.getName());
-
 	private HashFamily family;
 	private List<HashTable> hashTable; 
 	private int evaluated;
@@ -138,7 +136,7 @@ public class LSHIndex {
 	 * @return A list of nearest neighbours, the number of neighbours returned
 	 *         lays between zero and a chosen maximum.
 	 */
-	public List<Entry> query(final Entry query,int maxSize){
+	public List<Entry> nnQuery(final Entry query, int maxSize){
 		Set<Entry> candidateSet = new HashSet<>();
 		for(HashTable table : hashTable){
 			List<Entry> v = table.query(query);
@@ -152,6 +150,31 @@ public class LSHIndex {
 		if(candidates.size() > maxSize){
 			candidates = candidates.subList(0, maxSize);
 		}
+		return candidates;
+	}
+
+	/**
+	 * Query for all the points in the given range from the given query point using the current index.
+	 * The performance (in computing time and recall/precision) depends mainly on
+	 * how the current index is constructed and how the underlying data looks.
+	 *
+	 * @param query The query vector. The center of the neighbourhood.
+	 *
+	 * @return A list of nearest neighbours, the number of neighbours returned
+	 *         lays between zero and a chosen maximum.
+	 */
+	public List<Entry> rangeQuery(final Entry query){
+		Set<Entry> candidateSet = new HashSet<>();
+		for(HashTable table : hashTable){
+			List<Entry> v = table.query(query);
+			candidateSet.addAll(v);
+		}
+		List<Entry>candidates = new ArrayList<Entry>(candidateSet);
+		evaluated += candidates.size();
+		DistanceMeasure measure = family.createDistanceMeasure();
+		DistanceComparator dc = new DistanceComparator(query, measure);
+		Collections.sort(candidates,dc);
+
 		return candidates;
 	}
 	

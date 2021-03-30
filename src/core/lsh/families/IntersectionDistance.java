@@ -20,6 +20,8 @@
 
 package core.lsh.families;
 
+import core.lsh.Entry;
+
 /**
  * <p>
  * Calculates the intersection of one vector with an other vector. Intersection
@@ -35,7 +37,7 @@ package core.lsh.families;
 public class IntersectionDistance implements DistanceMeasure {
 
 	@Override
-	public double distance(Vector one, Vector other) {
+	public double distance(Entry one, Entry other) {
 		double intersectionSum = 0.0;
 		double thisArea = 0.0;
 		double otherArea = 0.0;

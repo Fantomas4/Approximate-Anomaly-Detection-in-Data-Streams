@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.TreeSet;
 import java.util.Vector;
 
-public class MCODBase extends OutlierDetector {
+public class MCODBase extends OutlierDetector<ISBNode> {
     protected static class EventItem implements Comparable<EventItem> {
         public ISBIndex.ISBNode node;
         public Long timeStamp;
@@ -169,11 +169,11 @@ public class MCODBase extends OutlierDetector {
     }
 
     protected void AddNode(ISBNode node) {
-        windowNodes.add(node);
+        windowElements.add(node);
     }
 
-    protected void RemoveNode(ISBIndex.ISBNode node) {
-        windowNodes.remove(node);
+    protected void RemoveNode(ISBNode node) {
+        windowElements.remove(node);
         // update statistics
         UpdateStatistics(node);
         // Check whether the node should be recorded as a pure outlier
@@ -217,7 +217,7 @@ public class MCODBase extends OutlierDetector {
         int nOnlyOutlier = m_nOnlyOutlier;
 
         // add counters of non expired nodes still in window
-        for (ISBIndex.ISBNode node : windowNodes) {
+        for (ISBIndex.ISBNode node : windowElements) {
             if ((node.nInlier > 0) && (node.nOutlier > 0))
                 nBothInlierOutlier++;
             else if (node.nInlier > 0)

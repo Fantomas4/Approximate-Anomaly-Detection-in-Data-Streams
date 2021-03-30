@@ -20,6 +20,7 @@
 
 package core.lsh;
 
+import core.DataObj;
 import core.StreamObj;
 
 import java.util.*;
@@ -30,24 +31,14 @@ import java.util.*;
  *
  * @author Joren Six
  */
-public class Entry implements Comparable<Entry> {
+public class Entry extends DataObj<Entry> implements Comparable<Entry> {
     public static enum EntryType { OUTLIER, INLIER }
 
-    /**
-     * Values are stored here.
-     */
-    private double[] values;
-
-    public StreamObj obj;
-    public Long id;
-    public int count_after;
     public EntryType entryType;
-    private ArrayList<Entry> nn_before;
 
     // statistics
     public int nOutlier;
     public int nInlier;
-
 
     /**
      * An optional key, identifier for the entry.
@@ -72,15 +63,18 @@ public class Entry implements Comparable<Entry> {
 //        this(other.getKey(),Arrays.copyOf(other.values, other.values.length));
 //    }
 
-    public Entry(String key, Long id, StreamObj obj){
-        this.key = key;
-        this.id = id;
-        this.obj = obj;
-        if (obj != null) {this.values = obj.getValues();}
+    /**
+     * Creates a new Entry with the requested number of dimensions.
+     * @param dimensions The number of dimensions.
+     */
+    public Entry(int dimensions) {
+        super(null, new double[dimensions], null);
+        this.key = null;
+    }
 
-        // init statistics
-        nOutlier = 0;
-        nInlier  = 0;
+    public Entry(String key, Long id, double[] values, StreamObj obj){
+        super(id, values, obj);
+        this.key = key;
 
         // init other fields
         InitNode();
@@ -89,7 +83,7 @@ public class Entry implements Comparable<Entry> {
     public void InitNode() {
         this.count_after = 0;
         this.entryType = EntryType.OUTLIER;
-        this.nn_before   = new ArrayList<>();
+        this.nn_before = new ArrayList<>();
     }
 
     @Override
@@ -120,7 +114,7 @@ public class Entry implements Comparable<Entry> {
     public Entry GetMinPrecNeigh(Long sinceId) {
         if (nn_before.size() > 0) {
             int startPos;
-            Entry dummy = new Entry(null, sinceId,null);
+            Entry dummy = new Entry(null, sinceId, null, null);
 
             int pos = Collections.binarySearch(nn_before, dummy);
             if (pos < 0) {
@@ -142,7 +136,7 @@ public class Entry implements Comparable<Entry> {
         if (nn_before.size() > 0) {
             // get number of neighs with id >= sinceId
             int startPos;
-            Entry dummy = new Entry(null, sinceId, null);
+            Entry dummy = new Entry(null, sinceId, null, null);
             int pos = Collections.binarySearch(nn_before, dummy);
             if (pos < 0) {
                 // item does not exist, should insert at position startPos
