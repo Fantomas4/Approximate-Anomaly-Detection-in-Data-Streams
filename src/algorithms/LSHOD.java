@@ -329,7 +329,7 @@ public class LSHOD extends OutlierDetector<Entry> {
 
 
         // DIAG ONLY -- DELETE
-        System.out.println("-------------------- MCOD baseline --------------------");
+        System.out.println("------------------------ LSHOD ------------------------");
         System.out.println("DIAG - Current stream object: " + (objId - 1));
         System.out.println("DIAG - #Safe inliers detected: " + diagSafeInliersCount);
         System.out.println("DIAG - TEMP OUTLIER SET SIZE: " + GetOutliersFound().size());

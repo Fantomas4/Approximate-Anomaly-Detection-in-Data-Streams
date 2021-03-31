@@ -10,9 +10,16 @@ public class Stream {
 
 
     public Stream() {
-        dataStream = new ArrayDeque<StreamObj>();
+        dataStream = new ArrayDeque<>();
     }
 
+    public int getStreamDataDimensions() {
+        if (dataStream.peek() != null) {
+            return dataStream.peek().dimensions();
+        } else {
+            return -1;
+        }
+    }
 
     public boolean hasNext() {
         return !dataStream.isEmpty();
