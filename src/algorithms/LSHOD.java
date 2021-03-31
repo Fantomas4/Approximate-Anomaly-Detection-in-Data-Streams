@@ -10,7 +10,7 @@ import java.util.*;
 
 public class LSHOD extends OutlierDetector<Entry> {
 
-    protected static class EventItem implements Comparable<MCODBase.EventItem> {
+    protected static class EventItem implements Comparable<EventItem> {
         public Entry entry;
         public Long timeStamp;
 
@@ -20,15 +20,15 @@ public class LSHOD extends OutlierDetector<Entry> {
         }
 
         @Override
-        public int compareTo(MCODBase.EventItem t) {
+        public int compareTo(EventItem t) {
             if (this.timeStamp > t.timeStamp) {
                 return +1;
             } else if (this.timeStamp < t.timeStamp) {
                 return -1;
             } else {
-                if (this.entry.id > t.node.id)
+                if (this.entry.id > t.entry.id)
                     return +1;
-                else if (this.entry.id < t.node.id)
+                else if (this.entry.id < t.entry.id)
                     return -1;
             }
             return 0;
