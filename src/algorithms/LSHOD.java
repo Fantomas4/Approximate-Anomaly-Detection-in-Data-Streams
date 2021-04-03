@@ -236,21 +236,8 @@ public class LSHOD extends OutlierDetector<Entry> {
 
     void ProcessNewEntry(Entry entryNew) {
         // Perform R range query in LSH Index to find the points relatively close to entryNew.
-        List<Entry> queryResults = lshIndex.rangeQuery(entryNew);
+        List<Entry> resultEntries = lshIndex.rangeQuery(entryNew);
         nRangeQueriesExecuted ++;
-
-        List<Entry> resultEntries = new ArrayList<>();
-        for (Entry queryResult : queryResults) {
-            // Calculate the exact euclidean distance of the points returned by the LSH query
-            // from entryNew to determine its precise neighbors.
-            if (euclideanDistance.distance(queryResult, entryNew) <= m_radius) {
-                resultEntries.add(queryResult);
-            } else {
-                // Since the points returned in queryResult are order in an ascending order based on their distance from
-                // entryNew, if a point if fount to have a distance greater than R from entryNew, the iteration is terminated.
-                break;
-            }
-        }
 
         for (Entry resultEntry : resultEntries) {
             // Add the neighbors found by the range query to entryNew

@@ -170,10 +170,10 @@ public class LSHIndex {
 			candidateSet.addAll(v);
 		}
 		List<Entry>candidates = new ArrayList<Entry>(candidateSet);
-		evaluated += candidates.size();
-		DistanceMeasure measure = family.createDistanceMeasure();
-		DistanceComparator dc = new DistanceComparator(query, measure);
-		Collections.sort(candidates,dc);
+//		evaluated += candidates.size();
+//		DistanceMeasure measure = family.createDistanceMeasure();
+//		DistanceComparator dc = new DistanceComparator(query, measure);
+//		Collections.sort(candidates,dc);
 
 		return candidates;
 	}

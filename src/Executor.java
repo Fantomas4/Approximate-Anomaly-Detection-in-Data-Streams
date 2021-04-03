@@ -98,7 +98,7 @@ public class Executor {
             approxMCODObj = new ApproxMCOD(windowSize, slideSize, rParameter, kParameter, pdLimit, arFactor);
         } else if (chosenAlgorithm.equals("LSHOD")) {
             int dataDimensions = stream.getStreamDataDimensions();
-            lshodObj = new LSHOD(windowSize, slideSize, rParameter, kParameter, dataDimensions, 30, 60);
+            lshodObj = new LSHOD(windowSize, slideSize, rParameter, kParameter, dataDimensions, 5, 10);
         }
 
         while (stream.hasNext()) {
