@@ -5,33 +5,33 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class AccuracyComparator {
-    String mcodFilename;
-    String approxmcodFilename;
-    ArrayList<Integer> mcodOutliers = new ArrayList<>();
-    ArrayList<Integer> approxmcodOutliers = new ArrayList<>();
+    String baselineFilename;
+    String testFilename;
+    ArrayList<Integer> baselineOutliers = new ArrayList<>();
+    ArrayList<Integer> testOutliers = new ArrayList<>();
     ArrayList<Integer> commonOutliers;
 
     public void execute() {
-        mcodOutliers = loadFile(mcodFilename);
-        approxmcodOutliers = loadFile(approxmcodFilename);
+        baselineOutliers = loadFile(baselineFilename);
+        testOutliers = loadFile(testFilename);
         findCommonOutliers();
     }
 
     private void findCommonOutliers() {
-        commonOutliers = new ArrayList<>(mcodOutliers);
-        commonOutliers.retainAll(approxmcodOutliers);
+        commonOutliers = new ArrayList<>(baselineOutliers);
+        commonOutliers.retainAll(testOutliers);
     }
 
     private void printStatistics() {
-        int mcodSize = mcodOutliers.size();
-        int approxmcodSize = approxmcodOutliers.size();
+        int baselineSize = baselineOutliers.size();
+        int testSize = testOutliers.size();
         int commonSize = commonOutliers.size();
-        float percentageDetected = ((float) commonSize / mcodSize) * 100;
+        float percentageDetected = ((float) commonSize / baselineSize) * 100;
 
-        System.out.println("-------------------- MCOD - ApproxMCOD Outlier Accuracy Comparison  --------------------");
-        System.out.println("> MCOD - Number of pure outliers: "+ mcodSize);
-        System.out.println("> ApproxMCOD - Number of pure outliers: "+ approxmcodSize);
-        System.out.printf("> Number of MCOD's outliers detected by ApproxMCOD: %d (%.2f %%)\n", commonSize, percentageDetected);
+        System.out.println("--------------------- Baseline - Test Outlier Accuracy Comparison  ---------------------");
+        System.out.println("> Baseline algorithm - Number of pure outliers: "+ baselineSize);
+        System.out.println("> Test algorithm - Number of pure outliers: "+ testSize);
+        System.out.printf("> Number of Baseline algorithm's outliers detected by Test algorithm: %d (%.2f %%)\n", commonSize, percentageDetected);
         System.out.println("----------------------------------------------------------------------------------------");
 
     }
@@ -65,11 +65,11 @@ public class AccuracyComparator {
             String arg = args[i];
             if (arg.indexOf("--") == 0) {
                 switch (arg) {
-                    case "--mcodFile":
-                        this.mcodFilename = args[i + 1];
+                    case "--baselineFile":
+                        this.baselineFilename = args[i + 1];
                         break;
-                    case "--approxmcodFile":
-                        this.approxmcodFilename = args[i + 1];
+                    case "--testFile":
+                        this.testFilename = args[i + 1];
                         break;
                 }
             }
