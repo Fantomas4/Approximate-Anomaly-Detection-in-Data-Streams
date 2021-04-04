@@ -13,14 +13,14 @@ public class OutlierDetector<T extends DataObj<?>> {
     protected Long windowStart;
     // ID indicating the window's ending object
     protected Long windowEnd;
-    private final TreeSet<Outlier> outliersFound;
+    private final TreeSet<Outlier<T>> outliersFound;
     protected int windowSize;
     protected int slideSize;
     // list used to find expired nodes
     public Vector<T> windowElements;
 
     public OutlierDetector(int windowSize, int slideSize) {
-        outliersFound = new TreeSet<Outlier>();
+        outliersFound = new TreeSet<>();
 
         this.windowSize = windowSize;
         // create nodes list of window
@@ -47,17 +47,19 @@ public class OutlierDetector<T extends DataObj<?>> {
     }
 
     public void evaluateAsOutlier(T elem) {
+//        System.out.println("DIAGGGGG --- elem.nOutlier: " + elem.nOutlier);
+//        System.out.println("DIAGGGGG --- elem.nInlier: " + elem.nInlier);
         if (elem.nOutlier > 0 && elem.nInlier == 0) {
             // node is a pure outlier, so we record it
-            recordOutlier(new Outlier(elem));
+            recordOutlier(new Outlier<>(elem));
         }
     }
 
-    private void recordOutlier(Outlier newOutlier) {
+    private void recordOutlier(Outlier<T> newOutlier) {
         outliersFound.add(newOutlier);
     }
 
-    public Set<Outlier> GetOutliersFound() {
+    public Set<Outlier<T>> GetOutliersFound() {
         return outliersFound;
     }
 

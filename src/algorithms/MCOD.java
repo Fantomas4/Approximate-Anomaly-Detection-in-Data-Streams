@@ -68,8 +68,6 @@ public class MCOD extends MCODBase {
             // check if node inlier or outlier
             int count = node.count_after + node.CountPrecNeighs(windowStart);
             if ((node.nodeType == NodeType.OUTLIER) && (count >= m_k)) {
-                // remove node from outliers
-                RemoveOutlier(node);
                 // add node to inlier set PD
                 SetNodeType(node, NodeType.INLIER_PD);
                 // If node is an unsafe inlier, insert it to the event queue
@@ -183,7 +181,6 @@ public class MCOD extends MCODBase {
                     // move q from set PD to set inlier-mc
                     SetNodeType(q, NodeType.INLIER_MC);
                     ISB_PD.Remove(q);
-                    RemoveOutlier(q); // needed? ###
                 }
 
                 // Update Rmc lists of nodes of PD in range 3R/2 from mcNew
@@ -218,7 +215,6 @@ public class MCOD extends MCODBase {
                 } else {
                     // nodeNew is an outlier
                     SetNodeType(nodeNew, NodeType.OUTLIER);
-                    SaveOutlier(nodeNew);
                 }
 
                 // Update nodeNew.Rmc
@@ -247,7 +243,6 @@ public class MCOD extends MCODBase {
                 if (count < m_k) {
                     // x is an outlier
                     SetNodeType(x, NodeType.OUTLIER);
-                    SaveOutlier(x);
                 } else {
                     // DIAG ONLY -- DELETE
                     if (x.count_after >= m_k) diagSafeInliersCount++;

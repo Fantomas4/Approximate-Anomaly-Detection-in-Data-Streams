@@ -92,8 +92,6 @@ public class ApproxMCOD extends MCODBase {
             // check if node inlier or outlier
             int count = node.count_after + node.CountPrecNeighs(windowStart);
             if ((node.nodeType == NodeType.OUTLIER) && (count >= m_k)) {
-                // remove node from outliers
-                RemoveOutlier(node);
                 // add node to inlier set PD
                 SetNodeType(node, NodeType.INLIER_PD);
                 // If node is an unsafe inlier, insert it to the event queue
@@ -246,7 +244,6 @@ public class ApproxMCOD extends MCODBase {
                     ISB_PD.Remove(q);
                     // If q is a safe inlier, also remove it from the PD's safe inlier set.
                     if (IsSafeInlier(q)) pdSafeInliers.remove(q);
-                    RemoveOutlier(q); // needed? ###
                 }
                 // Add to new mc nodes within range ar
                 for (ISBNode q : setANC) {
@@ -259,7 +256,6 @@ public class ApproxMCOD extends MCODBase {
                     ISB_PD.Remove(q);
                     // If q is a safe inlier, also remove it from the PD's safe inlier set.
                     if (IsSafeInlier(q)) pdSafeInliers.remove(q);
-                    RemoveOutlier(q); // needed? ###
                 }
 
 
@@ -292,7 +288,6 @@ public class ApproxMCOD extends MCODBase {
                 } else {
                     // nodeNew is an outlier
                     SetNodeType(nodeNew, NodeType.OUTLIER);
-                    SaveOutlier(nodeNew);
                 }
 
                 // If nodeNew is not a safe inlier, add it to PD
@@ -329,7 +324,6 @@ public class ApproxMCOD extends MCODBase {
                 if (count < m_k) {
                     // x is an outlier
                     SetNodeType(x, NodeType.OUTLIER);
-                    SaveOutlier(x);
                 } else {
                     // DIAG ONLY -- DELETE
                     if (x.count_after >= m_k) diagSafeInliersCount++;

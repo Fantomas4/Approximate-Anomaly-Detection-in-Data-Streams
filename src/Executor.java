@@ -1,6 +1,7 @@
 import algorithms.ApproxMCOD;
 import algorithms.LSHOD;
 import algorithms.MCOD;
+import core.DataObj;
 import core.Outlier;
 import core.Stream;
 
@@ -109,23 +110,18 @@ public class Executor {
         // the nodes that are pure outliers.
         if (chosenAlgorithm.equals("MCOD")) {
             mcodObj.evaluateRemainingElemsInWin();
-
         } else if (chosenAlgorithm.equals("ApproxMCOD")) {
             approxMCODObj.evaluateRemainingElemsInWin();
         } else if (chosenAlgorithm.equals("LSHOD")) {
             lshodObj.evaluateRemainingElemsInWin();
         }
 
-        Set<Outlier> outliersDetected;
         if (chosenAlgorithm.equals("MCOD")) {
-            outliersDetected = mcodObj.GetOutliersFound();
-            exportOutliersToFile(outliersDetected, outliersFile);
+            exportOutliersToFile(mcodObj.GetOutliersFound(), outliersFile);
         } else if (chosenAlgorithm.equals("ApproxMCOD")) {
-            outliersDetected = approxMCODObj.GetOutliersFound();
-            exportOutliersToFile(outliersDetected, outliersFile);
+            exportOutliersToFile(approxMCODObj.GetOutliersFound(), outliersFile);
         } else if (chosenAlgorithm.equals("LSHOD")) {
-            outliersDetected = lshodObj.GetOutliersFound();
-            exportOutliersToFile(outliersDetected, outliersFile);
+            exportOutliersToFile(lshodObj.GetOutliersFound(), outliersFile);
         }
     }
 
@@ -183,11 +179,11 @@ public class Executor {
         }
     }
 
-    private void exportOutliersToFile(Set<Outlier> outliersDetected, String targetFile) {
+    private <T extends DataObj<T>> void exportOutliersToFile(Set<Outlier<T>> outliersDetected, String targetFile) {
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(targetFile));
 
-            for (Outlier outlier : outliersDetected) {
+            for (Outlier<T> outlier : outliersDetected) {
                 bw.write(Long.toString(outlier.id));
                 bw.newLine();
             }

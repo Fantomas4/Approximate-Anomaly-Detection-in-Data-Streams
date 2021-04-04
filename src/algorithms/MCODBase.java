@@ -160,14 +160,6 @@ public class MCODBase extends OutlierDetector<ISBNode> {
         return node.count_after >= m_k;
     }
 
-    protected void SaveOutlier(ISBNode node) {
-        node.nOutlier++; // update statistics
-    }
-
-    protected void RemoveOutlier(ISBNode node) {
-        node.nInlier++; // update statistics
-    }
-
     protected void AddNode(ISBNode node) {
         windowElements.add(node);
     }
