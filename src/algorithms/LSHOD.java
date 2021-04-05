@@ -146,14 +146,6 @@ public class LSHOD extends OutlierDetector<Entry> {
         return entry.count_after >= m_k;
     }
 
-    protected void SaveOutlier(Entry entry) {
-        entry.nOutlier++; // update statistics
-    }
-
-    protected void RemoveOutlier(Entry entry) {
-        entry.nInlier++; // update statistics
-    }
-
     protected void AddNode(Entry entry) {
         windowElements.add(entry);
     }
@@ -222,7 +214,6 @@ public class LSHOD extends OutlierDetector<Entry> {
             int count = entry.count_after + entry.CountPrecNeighs(windowStart);
             if ((entry.entryType == Entry.EntryType.OUTLIER) && (count >= m_k)) {
                 // remove entry from outliers
-                RemoveOutlier(entry);
                 // mark entry as an inlier
                 SetNodeType(entry, Entry.EntryType.INLIER);
                 // If entry is an unsafe inlier, insert it to the event queue
@@ -263,7 +254,6 @@ public class LSHOD extends OutlierDetector<Entry> {
         } else {
             // nodeNew is an outlier
             SetNodeType(entryNew, Entry.EntryType.OUTLIER);
-            SaveOutlier(entryNew);
         }
     }
 
@@ -285,7 +275,6 @@ public class LSHOD extends OutlierDetector<Entry> {
                 if (count < m_k) {
                     // x is an outlier
                     SetNodeType(x, Entry.EntryType.OUTLIER);
-                    SaveOutlier(x);
                 } else {
                     // DIAG ONLY -- DELETE
                     if (x.count_after >= m_k) diagSafeInliersCount++;

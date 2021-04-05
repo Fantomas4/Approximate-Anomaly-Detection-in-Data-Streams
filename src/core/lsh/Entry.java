@@ -36,10 +36,6 @@ public class Entry extends DataObj<Entry> implements Comparable<Entry> {
 
     public EntryType entryType;
 
-    // statistics
-    public int nOutlier;
-    public int nInlier;
-
     /**
      * An optional key, identifier for the entry.
      */

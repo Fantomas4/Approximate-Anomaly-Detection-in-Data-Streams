@@ -47,8 +47,6 @@ public class OutlierDetector<T extends DataObj<?>> {
     }
 
     public void evaluateAsOutlier(T elem) {
-//        System.out.println("DIAGGGGG --- elem.nOutlier: " + elem.nOutlier);
-//        System.out.println("DIAGGGGG --- elem.nInlier: " + elem.nInlier);
         if (elem.nOutlier > 0 && elem.nInlier == 0) {
             // node is a pure outlier, so we record it
             recordOutlier(new Outlier<>(elem));
