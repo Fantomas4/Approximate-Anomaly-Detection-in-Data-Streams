@@ -95,7 +95,7 @@ public class LSHOD extends OutlierDetector<Entry> {
         objId = FIRST_OBJ_ID; // init object identifier
 
         // create LSH Index
-        lshIndex = new LSHIndex(new EuclidianHashFamily((int)radius, dimensions), numberOfHashes, numberOfHashTables);
+        lshIndex = new LSHIndex(new EuclidianHashFamily(radius, dimensions), numberOfHashes, numberOfHashTables);
         euclideanDistance = new EuclideanDistance();
 
         // create event queue

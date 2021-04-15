@@ -28,11 +28,11 @@ public class EuclidianHashFamily implements HashFamily {
 	 */
 	private static final long serialVersionUID = 3406464542795652263L;
 	private final int dimensions;
-	private int w;
+	private double w;
 		
-	public EuclidianHashFamily(int w,int dimensions){
+	public EuclidianHashFamily(double w,int dimensions){
 		this.dimensions = dimensions;
-		this.w=w;
+		this.w = w;
 	}
 	
 	@Override

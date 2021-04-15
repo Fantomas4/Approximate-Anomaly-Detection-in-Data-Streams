@@ -29,26 +29,26 @@ public class EuclideanHash implements HashFunction{
 	 * 
 	 */
 	private static final long serialVersionUID = -3784656820380622717L;
-	private Entry randomProjection;
-	private int offset;
-	private int w;
+	private Entry randomVector;
+	private double randomBias;
+	private double w;
 	
-	public EuclideanHash(int dimensions,int w){
+	public EuclideanHash(int dimensions, double w){
 		Random rand = new Random();
 		this.w = w;
-		this.offset = rand.nextInt(w);
-		
-		randomProjection = new Entry(dimensions);
-		for(int d=0; d<dimensions; d++) {
+		this.randomBias = rand.nextDouble();
+
+		randomVector = new Entry(dimensions);
+		for(int d = 0; d < dimensions; d ++) {
 			//mean 0
 			//standard deviation 1.0
 			double val = rand.nextGaussian();
-			randomProjection.set(d, val);
+			randomVector.set(d, val);
 		}
 	}
 	
 	public int hash(Entry vector){
-		double hashValue = (vector.dot(randomProjection)+offset)/Double.valueOf(w);
-		return (int) Math.round(hashValue);
+		double hashValue = (vector.dot(randomVector) + randomBias) / w;
+		return (int) Math.floor(hashValue);
 	}
 }
