@@ -65,8 +65,6 @@ public class LSHOD extends OutlierDetector<Entry> {
         }
     }
 
-    // DIAG ONLY -- DELETE
-    int diagSafeInliersCount = 0;
 
     protected int nRangeQueriesExecuted = 0;
 
@@ -258,9 +256,6 @@ public class LSHOD extends OutlierDetector<Entry> {
     }
 
     void ProcessEventQueue(Entry entryExpired) {
-        // DIAG ONLY -- DELETE
-        diagSafeInliersCount = 0;
-
         EventItem e = eventQueue.FindMin();
         while ((e != null) && (e.timeStamp <= windowEnd)) {
             e = eventQueue.ExtractMin();
@@ -276,9 +271,6 @@ public class LSHOD extends OutlierDetector<Entry> {
                     // x is an outlier
                     SetNodeType(x, Entry.EntryType.OUTLIER);
                 } else {
-                    // DIAG ONLY -- DELETE
-                    if (x.count_after >= m_k) diagSafeInliersCount++;
-
                     // If x is an unsafe inlier, add it to the event queue
                     if (!IsSafeInlier(x)) {
                         // get oldest preceding neighbor of x
@@ -323,7 +315,6 @@ public class LSHOD extends OutlierDetector<Entry> {
         // DIAG ONLY -- DELETE
         System.out.println("------------------------ LSHOD ------------------------");
         System.out.println("DIAG - Current stream object: " + (objId - 1));
-        System.out.println("DIAG - #Safe inliers detected: " + diagSafeInliersCount);
         System.out.println("DIAG - TEMP OUTLIER SET SIZE: " + GetOutliersFound().size());
         System.out.println("DIAG - TEMP Window size is: " + windowElements.size());
         System.out.println("-------------------------------------------------------");
