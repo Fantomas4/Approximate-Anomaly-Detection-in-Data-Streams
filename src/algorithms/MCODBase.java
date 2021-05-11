@@ -1,18 +1,17 @@
 package algorithms;
 
-import core.ISBIndex;
-import core.MTreeMicroClusters;
-import core.MicroCluster;
-import core.Outlier;
+import core.mcodbase.ISBIndex;
+import core.mcodbase.MTreeMicroClusters;
+import core.mcodbase.MicroCluster;
 import core.OutlierDetector;
-import core.ISBIndex.ISBNode;
-import core.ISBIndex.ISBNode.NodeType;
+import core.mcodbase.ISBIndex.ISBNode;
+import core.mcodbase.ISBIndex.ISBNode.NodeType;
 
 import java.util.HashMap;
 import java.util.TreeSet;
 import java.util.Vector;
 
-public class MCODBase extends OutlierDetector {
+public class MCODBase extends OutlierDetector<ISBNode> {
     protected static class EventItem implements Comparable<EventItem> {
         public ISBIndex.ISBNode node;
         public Long timeStamp;
@@ -161,20 +160,12 @@ public class MCODBase extends OutlierDetector {
         return node.count_after >= m_k;
     }
 
-    protected void SaveOutlier(ISBNode node) {
-        node.nOutlier++; // update statistics
-    }
-
-    protected void RemoveOutlier(ISBNode node) {
-        node.nInlier++; // update statistics
-    }
-
     protected void AddNode(ISBNode node) {
-        windowNodes.add(node);
+        windowElements.add(node);
     }
 
-    protected void RemoveNode(ISBIndex.ISBNode node) {
-        windowNodes.remove(node);
+    protected void RemoveNode(ISBNode node) {
+        windowElements.remove(node);
         // update statistics
         UpdateStatistics(node);
         // Check whether the node should be recorded as a pure outlier
@@ -218,7 +209,7 @@ public class MCODBase extends OutlierDetector {
         int nOnlyOutlier = m_nOnlyOutlier;
 
         // add counters of non expired nodes still in window
-        for (ISBIndex.ISBNode node : windowNodes) {
+        for (ISBIndex.ISBNode node : windowElements) {
             if ((node.nInlier > 0) && (node.nOutlier > 0))
                 nBothInlierOutlier++;
             else if (node.nInlier > 0)

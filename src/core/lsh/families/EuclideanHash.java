@@ -1,0 +1,54 @@
+/*
+*      _______                       _        ____ _     _
+*     |__   __|                     | |     / ____| |   | |
+*        | | __ _ _ __ ___  ___  ___| |    | (___ | |___| |
+*        | |/ _` | '__/ __|/ _ \/ __| |     \___ \|  ___  |
+*        | | (_| | |  \__ \ (_) \__ \ |____ ____) | |   | |
+*        |_|\__,_|_|  |___/\___/|___/_____/|_____/|_|   |_|
+*                                                         
+* -----------------------------------------------------------
+*
+*  TarsosLSH is developed by Joren Six.
+*  
+* -----------------------------------------------------------
+*
+*  Info    : http://0110.be/tag/TarsosLSH
+*  Github  : https://github.com/JorenSix/TarsosLSH
+*  Releases: http://0110.be/releases/TarsosLSH/
+* 
+*/
+
+package core.lsh.families;
+
+import core.lsh.Entry;
+
+import java.util.Random;
+
+public class EuclideanHash implements HashFunction{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3784656820380622717L;
+	private Entry randomVector;
+	private double randomBias;
+	private double w;
+	
+	public EuclideanHash(int dimensions, double w){
+		Random rand = new Random();
+		this.w = w;
+		this.randomBias = rand.nextDouble();
+
+		randomVector = new Entry(dimensions);
+		for(int d = 0; d < dimensions; d ++) {
+			//mean 0
+			//standard deviation 1.0
+			double val = rand.nextGaussian();
+			randomVector.set(d, val);
+		}
+	}
+	
+	public int hash(Entry vector){
+		double hashValue = (vector.dot(randomVector) + randomBias) / w;
+		return (int) Math.floor(hashValue);
+	}
+}

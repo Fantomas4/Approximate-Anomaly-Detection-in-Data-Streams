@@ -1,5 +1,7 @@
 import algorithms.ApproxMCOD;
+import algorithms.LSHOD;
 import algorithms.MCOD;
+import core.DataObj;
 import core.Outlier;
 import core.Stream;
 
@@ -33,6 +35,7 @@ public class Executor {
 
     private MCOD mcodObj;
     private ApproxMCOD approxMCODObj;
+    private LSHOD lshodObj;
 
 
     public Executor(String[] args) {
@@ -94,6 +97,9 @@ public class Executor {
             mcodObj = new MCOD(windowSize, slideSize, rParameter, kParameter);
         } else if (chosenAlgorithm.equals("ApproxMCOD")) {
             approxMCODObj = new ApproxMCOD(windowSize, slideSize, rParameter, kParameter, pdLimit, arFactor);
+        } else if (chosenAlgorithm.equals("LSHOD")) {
+            int dataDimensions = stream.getStreamDataDimensions();
+            lshodObj = new LSHOD(windowSize, slideSize, rParameter, kParameter, dataDimensions, 5, 10);
         }
 
         while (stream.hasNext()) {
@@ -103,19 +109,19 @@ public class Executor {
         // Evaluate the non-expired nodes still in the window in order to record
         // the nodes that are pure outliers.
         if (chosenAlgorithm.equals("MCOD")) {
-            mcodObj.evaluateRemainingNodesInWin();
-
+            mcodObj.evaluateRemainingElemsInWin();
         } else if (chosenAlgorithm.equals("ApproxMCOD")) {
-            approxMCODObj.evaluateRemainingNodesInWin();
+            approxMCODObj.evaluateRemainingElemsInWin();
+        } else if (chosenAlgorithm.equals("LSHOD")) {
+            lshodObj.evaluateRemainingElemsInWin();
         }
 
-        Set<Outlier> outliersDetected;
         if (chosenAlgorithm.equals("MCOD")) {
-            outliersDetected = mcodObj.GetOutliersFound();
-            exportOutliersToFile(outliersDetected, outliersFile);
+            exportOutliersToFile(mcodObj.GetOutliersFound(), outliersFile);
         } else if (chosenAlgorithm.equals("ApproxMCOD")) {
-            outliersDetected = approxMCODObj.GetOutliersFound();
-            exportOutliersToFile(outliersDetected, outliersFile);
+            exportOutliersToFile(approxMCODObj.GetOutliersFound(), outliersFile);
+        } else if (chosenAlgorithm.equals("LSHOD")) {
+            exportOutliersToFile(lshodObj.GetOutliersFound(), outliersFile);
         }
     }
 
@@ -154,14 +160,30 @@ public class Executor {
                 // init
                 m_timePreObjSum = 0L;
             }
+        } else if (chosenAlgorithm.equals("LSHOD")) {
+            nsNow = System.nanoTime();
+
+            lshodObj.ProcessNewStreamObjects(stream.getIncomingData(slideSize));
+
+            UpdateMaxMemUsage();
+            nTotalRunTime += (System.nanoTime() - nsNow) / (1024 * 1024);
+
+            // update process time per object
+            nProcessed++;
+            m_timePreObjSum += System.nanoTime() - nsNow;
+            if (nProcessed % m_timePreObjInterval == 0) {
+                nTimePerObj = ((double) m_timePreObjSum) / ((double) m_timePreObjInterval);
+                // init
+                m_timePreObjSum = 0L;
+            }
         }
     }
 
-    private void exportOutliersToFile(Set<Outlier> outliersDetected, String targetFile) {
+    private <T extends DataObj<T>> void exportOutliersToFile(Set<Outlier<T>> outliersDetected, String targetFile) {
         try {
             BufferedWriter bw = new BufferedWriter(new FileWriter(targetFile));
 
-            for (Outlier outlier : outliersDetected) {
+            for (Outlier<T> outlier : outliersDetected) {
                 bw.write(Long.toString(outlier.id));
                 bw.newLine();
             }
@@ -176,9 +198,10 @@ public class Executor {
         HashMap<String, Integer> results = null;
         if (chosenAlgorithm.equals("MCOD")) {
             results = mcodObj.getResults();
-
         } else if (chosenAlgorithm.equals("ApproxMCOD")) {
             results = approxMCODObj.getResults();
+        } else if (chosenAlgorithm.equals("LSHOD")) {
+            results = lshodObj.getResults();
         }
 
         return results;

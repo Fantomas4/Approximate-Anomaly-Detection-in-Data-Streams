@@ -1,14 +1,14 @@
 package core;
 
-import core.ISBIndex.ISBNode;
+import core.mcodbase.ISBIndex.ISBNode;
 
-public class Outlier implements Comparable<Outlier> {
+public class Outlier<T extends DataObj<?>> implements Comparable<Outlier> {
     public long id;
     public Object obj;
 
-    public Outlier(ISBNode node) {
-        this.id = node.id;
-        this.obj = node;
+    public Outlier(T elem) {
+        this.id = elem.id;
+        this.obj = elem;
     }
 
     @Override

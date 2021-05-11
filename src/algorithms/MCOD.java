@@ -21,10 +21,10 @@
 package algorithms;
 
 
-import core.ISBIndex.ISBNode;
-import core.ISBIndex.ISBSearchResult;
-import core.ISBIndex.ISBNode.NodeType;
-import core.MicroCluster;
+import core.mcodbase.ISBIndex.ISBNode;
+import core.mcodbase.ISBIndex.ISBSearchResult;
+import core.mcodbase.ISBIndex.ISBNode.NodeType;
+import core.mcodbase.MicroCluster;
 import core.StreamObj;
 
 import java.util.*;
@@ -49,7 +49,7 @@ public class MCOD extends MCODBase {
 
     void AddNeighbor(ISBNode node, ISBNode q, boolean bUpdateState) {
         // check if q still in window
-        if (IsNodeIdInWin(q.id) == false) {
+        if (IsElemInWindow(q.id) == false) {
             return;
         }
 
@@ -68,8 +68,6 @@ public class MCOD extends MCODBase {
             // check if node inlier or outlier
             int count = node.count_after + node.CountPrecNeighs(windowStart);
             if ((node.nodeType == NodeType.OUTLIER) && (count >= m_k)) {
-                // remove node from outliers
-                RemoveOutlier(node);
                 // add node to inlier set PD
                 SetNodeType(node, NodeType.INLIER_PD);
                 // If node is an unsafe inlier, insert it to the event queue
@@ -183,7 +181,6 @@ public class MCOD extends MCODBase {
                     // move q from set PD to set inlier-mc
                     SetNodeType(q, NodeType.INLIER_MC);
                     ISB_PD.Remove(q);
-                    RemoveOutlier(q); // needed? ###
                 }
 
                 // Update Rmc lists of nodes of PD in range 3R/2 from mcNew
@@ -218,7 +215,6 @@ public class MCOD extends MCODBase {
                 } else {
                     // nodeNew is an outlier
                     SetNodeType(nodeNew, NodeType.OUTLIER);
-                    SaveOutlier(nodeNew);
                 }
 
                 // Update nodeNew.Rmc
@@ -238,7 +234,7 @@ public class MCOD extends MCODBase {
             e = eventQueue.ExtractMin();
             ISBNode x = e.node;
             // node x must be in window and not in any micro-cluster
-            boolean bValid = ( IsNodeIdInWin(x.id) && (x.mc == null) );
+            boolean bValid = ( IsElemInWindow(x.id) && (x.mc == null) );
             if (bValid) {
                 // remove nodeExpired from x.nn_before
                 x.RemovePrecNeigh(nodeExpired);
@@ -247,7 +243,6 @@ public class MCOD extends MCODBase {
                 if (count < m_k) {
                     // x is an outlier
                     SetNodeType(x, NodeType.OUTLIER);
-                    SaveOutlier(x);
                 } else {
                     // DIAG ONLY -- DELETE
                     if (x.count_after >= m_k) diagSafeInliersCount++;
@@ -305,7 +300,7 @@ public class MCOD extends MCODBase {
     }
 
     public void ProcessNewStreamObjects(ArrayList<StreamObj> streamObjs) {
-        if (windowNodes.size() >= windowSize) {
+        if (windowElements.size() >= windowSize) {
             // If the window is full, perform a slide
             doSlide();
             // Process expired nodes
@@ -333,13 +328,13 @@ public class MCOD extends MCODBase {
         System.out.println("DIAG - Total -ACTIVE- MCs: " + setMC.size());
         System.out.println("DIAG - Total -ACTIVE- PD List Population: " + ISB_PD.GetSize());
         System.out.println("DIAG - TEMP OUTLIER SET SIZE: " + GetOutliersFound().size());
-        System.out.println("DIAG - TEMP Window size is: " + windowNodes.size());
+        System.out.println("DIAG - TEMP Window size is: " + windowElements.size());
         System.out.println("-------------------------------------------------------");
     }
 
     private ArrayList<ISBNode> GetExpiredNodes() {
         ArrayList<ISBNode> expiredNodes = new ArrayList<>();
-        for (ISBNode node : windowNodes) {
+        for (ISBNode node : windowElements) {
             // check if node has expired
             if (node.id < windowStart) {
                 expiredNodes.add(node);
