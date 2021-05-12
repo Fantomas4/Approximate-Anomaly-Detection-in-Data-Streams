@@ -4,10 +4,9 @@ import core.StreamObj;
 import core.lsh.Entry;
 import core.OutlierDetector;
 import core.lsh.LSHIndex;
-import core.lsh.families.EuclideanDistance;
-import core.lsh.families.EuclidianHashFamily;
 
 import java.util.*;
+
 
 public class LSHOD extends OutlierDetector<Entry> {
 
@@ -73,7 +72,6 @@ public class LSHOD extends OutlierDetector<Entry> {
     protected EventQueue eventQueue;
     // LSH index of entries
     protected LSHIndex lshIndex;
-    private EuclideanDistance euclideanDistance;
 
     protected double m_radius;
     protected int m_k;
@@ -93,8 +91,7 @@ public class LSHOD extends OutlierDetector<Entry> {
         objId = FIRST_OBJ_ID; // init object identifier
 
         // create LSH Index
-        lshIndex = new LSHIndex(new EuclidianHashFamily(radius, dimensions), numberOfHashes, numberOfHashTables);
-        euclideanDistance = new EuclideanDistance();
+        lshIndex = new LSHIndex(numberOfHashes, numberOfHashTables, 4, dimensions);
 
         // create event queue
         eventQueue = new EventQueue();
@@ -225,7 +222,7 @@ public class LSHOD extends OutlierDetector<Entry> {
 
     void ProcessNewEntry(Entry entryNew) {
         // Perform R range query in LSH Index to find the points relatively close to entryNew.
-        List<Entry> resultEntries = lshIndex.rangeQuery(entryNew);
+        List<Entry> resultEntries = lshIndex.query(entryNew);
         nRangeQueriesExecuted ++;
 
         for (Entry resultEntry : resultEntries) {
@@ -304,7 +301,7 @@ public class LSHOD extends OutlierDetector<Entry> {
 
         // Process new nodes
         for (StreamObj streamObj : streamObjs) {
-            Entry entryNew = new Entry(null, objId, streamObj.getValues(), streamObj); // create new ISB node
+            Entry entryNew = new Entry(objId, streamObj.getValues(), streamObj); // create new ISB node
             AddNode(entryNew); // add nodeNew to window
             ProcessNewEntry(entryNew);
 
