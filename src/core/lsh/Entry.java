@@ -108,8 +108,4 @@ public class Entry extends DataObj<Entry> implements Comparable<Entry> {
         return sum;
     }
 
-
-
-
-
 }

@@ -82,7 +82,7 @@ public class LSHOD extends OutlierDetector<Entry> {
     public int m_nOnlyInlier;
     public int m_nOnlyOutlier;
 
-    public LSHOD(int windowSize, int slideSize,  double radius, int k, int dimensions, int numberOfHashes, int numberOfHashTables) {
+    public LSHOD(int windowSize, int slideSize,  double radius, int k, int dimensions, int numberOfHashes, int numberOfHashTables, int w) {
         super(windowSize, slideSize);
 
         m_radius = radius;
@@ -91,7 +91,7 @@ public class LSHOD extends OutlierDetector<Entry> {
         objId = FIRST_OBJ_ID; // init object identifier
 
         // create LSH Index
-        lshIndex = new LSHIndex(numberOfHashes, numberOfHashTables, 4, dimensions);
+        lshIndex = new LSHIndex(numberOfHashes, numberOfHashTables, w, dimensions);
 
         // create event queue
         eventQueue = new EventQueue();

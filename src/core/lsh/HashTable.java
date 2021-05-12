@@ -24,13 +24,15 @@ public class HashTable {
         if (hashTable.containsKey(combinedHash)) {
             hashTable.get(combinedHash).add(entry);
         } else {
-            hashTable.put(combinedHash, new ArrayList<>());
+            ArrayList<Entry> newBucket = new ArrayList<>();
+            newBucket.add(entry);
+            hashTable.put(combinedHash, newBucket);
         }
     }
 
     public void remove(Entry entry) {
         String combinedHash = generateCombinedHash(entry);
-        hashTable.remove(combinedHash);
+        hashTable.get(combinedHash).remove(entry);
     }
 
     public ArrayList<Entry> query(Entry entry) {

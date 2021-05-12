@@ -2,12 +2,14 @@ package core.lsh;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 public class LSHIndex {
     private final ArrayList<HashTable> hashTables;
 
     public LSHIndex(int numHashes, int numHashTables, int w, int dimensions) {
-        // Generate the collection of hash tables using unique HashFunctio
+        // Create the collection of hash tables
         hashTables = new ArrayList<>();
         for (int t = 0; t < numHashTables; t++) {
             hashTables.add(new HashTable(numHashes, w, dimensions));
@@ -27,12 +29,15 @@ public class LSHIndex {
     }
 
     public ArrayList<Entry> query(Entry entry) {
-        ArrayList<Entry> queryResults = new ArrayList<>();
+        Set<Entry> indexQueryResults  = new HashSet<>();
 
         for (HashTable hashTable : hashTables) {
-            queryResults.addAll(hashTable.query(entry));
+            ArrayList<Entry> tableQueryResults = hashTable.query(entry);
+            if (tableQueryResults != null) {
+                indexQueryResults.addAll(tableQueryResults);
+            }
         }
 
-        return queryResults;
+        return new ArrayList<>(indexQueryResults);
     }
 }
