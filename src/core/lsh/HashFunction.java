@@ -21,7 +21,7 @@ public class HashFunction {
         randomVector = new Entry(randomValues);
     }
 
-    private double getRandomDouble(int upperBound, int lowerBound) {
+    private double getRandomDouble(int lowerBound, int upperBound) {
         // Note that the upper and lower bounds are inclusive.
         if (lowerBound < 0 || upperBound < 0) {
             throw new IllegalArgumentException("Lower and upper bounds must be equal or greater than 0.");
