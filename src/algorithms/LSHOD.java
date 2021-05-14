@@ -189,14 +189,14 @@ public class LSHOD extends OutlierDetector<Entry> {
 
     void AddNeighbor(Entry entry, Entry q, boolean bUpdateState) {
         // check if q still in window
-        if (IsElemInWindow(q.id) == false) {
+        if (isElemInWindow(q.id) == false) {
             return;
         }
 
         if (getNodeSlide(q) >= getNodeSlide(entry)) {
             entry.count_after ++;
         } else {
-            entry.AddPrecNeigh(q);
+            entry.addPrecNeigh(q);
         }
 //        if (q.id < node.id) {
 //            node.AddPrecNeigh(q);
@@ -206,14 +206,14 @@ public class LSHOD extends OutlierDetector<Entry> {
 
         if (bUpdateState) {
             // check if entry is an inlier or outlier
-            int count = entry.count_after + entry.CountPrecNeighs(windowStart);
+            int count = entry.count_after + entry.countPrecNeighs(windowStart);
             if ((entry.entryType == Entry.EntryType.OUTLIER) && (count >= m_k)) {
                 // remove entry from outliers
                 // mark entry as an inlier
                 SetNodeType(entry, Entry.EntryType.INLIER);
                 // If entry is an unsafe inlier, insert it to the event queue
                 if (!IsSafeInlier(entry)) {
-                    Entry entryMinExp = entry.GetMinPrecNeigh(windowStart);
+                    Entry entryMinExp = entry.getMinPrecNeigh(windowStart);
                     AddToEventQueue(entry, entryMinExp);
                 }
             }
@@ -237,13 +237,13 @@ public class LSHOD extends OutlierDetector<Entry> {
         lshIndex.add(entryNew);
 
         // Check if nodeNew is an inlier or outlier
-        int count = entryNew.CountPrecNeighs(windowStart) + entryNew.count_after;
+        int count = entryNew.countPrecNeighs(windowStart) + entryNew.count_after;
         if (count >= m_k) {
             // nodeNew is an inlier
             SetNodeType(entryNew, Entry.EntryType.INLIER);
             // If nodeNew is an unsafe inlier, insert it to the event queue
             if (!IsSafeInlier(entryNew)) {
-                Entry entryMinExp = entryNew.GetMinPrecNeigh(windowStart);
+                Entry entryMinExp = entryNew.getMinPrecNeigh(windowStart);
                 AddToEventQueue(entryNew, entryMinExp);
             }
         } else {
@@ -258,12 +258,12 @@ public class LSHOD extends OutlierDetector<Entry> {
             e = eventQueue.ExtractMin();
             Entry x = e.entry;
             // node x must be in window and not in any micro-cluster
-            boolean bValid = IsElemInWindow(x.id);
+            boolean bValid = isElemInWindow(x.id);
             if (bValid) {
                 // remove nodeExpired from x.nn_before
-                x.RemovePrecNeigh(entryExpired);
+                x.removePrecNeigh(entryExpired);
                 // get amount of neighbors of x
-                int count = x.count_after + x.CountPrecNeighs(windowStart);
+                int count = x.count_after + x.countPrecNeighs(windowStart);
                 if (count < m_k) {
                     // x is an outlier
                     SetNodeType(x, Entry.EntryType.OUTLIER);
@@ -271,7 +271,7 @@ public class LSHOD extends OutlierDetector<Entry> {
                     // If x is an unsafe inlier, add it to the event queue
                     if (!IsSafeInlier(x)) {
                         // get oldest preceding neighbor of x
-                        Entry entryMinExp = x.GetMinPrecNeigh(windowStart);
+                        Entry entryMinExp = x.getMinPrecNeigh(windowStart);
                         // add x to event queue
                         AddToEventQueue(x, entryMinExp);
                     }

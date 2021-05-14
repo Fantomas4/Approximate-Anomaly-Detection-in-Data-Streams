@@ -32,7 +32,7 @@ public class OutlierDetector<T extends DataObj<?>> {
 
     }
 
-    protected boolean IsElemInWindow(long id) {
+    protected boolean isElemInWindow(long id) {
         Long start = windowStart;
         if ( (start <= id) && (id <= windowEnd) )
             return true;

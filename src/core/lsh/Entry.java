@@ -36,7 +36,7 @@ public class Entry extends DataObj<Entry> implements Comparable<Entry> {
         return 0;
     }
 
-    public void AddPrecNeigh(Entry entry) {
+    public void addPrecNeigh(Entry entry) {
         int pos = Collections.binarySearch(nn_before, entry);
         if (pos < 0) {
             // item does not exist, so add it to the right position
@@ -44,7 +44,7 @@ public class Entry extends DataObj<Entry> implements Comparable<Entry> {
         }
     }
 
-    public void RemovePrecNeigh(Entry entry) {
+    public void removePrecNeigh(Entry entry) {
         int pos = Collections.binarySearch(nn_before, entry);
         if (pos >= 0) {
             // item exists
@@ -52,7 +52,7 @@ public class Entry extends DataObj<Entry> implements Comparable<Entry> {
         }
     }
 
-    public Entry GetMinPrecNeigh(Long sinceId) {
+    public Entry getMinPrecNeigh(Long sinceId) {
         if (nn_before.size() > 0) {
             int startPos;
             Entry dummy = new Entry(sinceId, null, null);
@@ -73,7 +73,7 @@ public class Entry extends DataObj<Entry> implements Comparable<Entry> {
         return null;
     }
 
-    public int CountPrecNeighs(Long sinceId) {
+    public int countPrecNeighs(Long sinceId) {
         if (nn_before.size() > 0) {
             // get number of neighs with id >= sinceId
             int startPos;

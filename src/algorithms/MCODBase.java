@@ -4,20 +4,20 @@ import core.mcodbase.ISBIndex;
 import core.mcodbase.MTreeMicroClusters;
 import core.mcodbase.MicroCluster;
 import core.OutlierDetector;
-import core.mcodbase.ISBIndex.ISBNode;
-import core.mcodbase.ISBIndex.ISBNode.NodeType;
+import core.mcodbase.ISBIndex.ISBEntry;
+import core.mcodbase.ISBIndex.ISBEntry.EntryType;
 
 import java.util.HashMap;
 import java.util.TreeSet;
 import java.util.Vector;
 
-public class MCODBase extends OutlierDetector<ISBNode> {
+public class MCODBase extends OutlierDetector<ISBEntry> {
     protected static class EventItem implements Comparable<EventItem> {
-        public ISBIndex.ISBNode node;
+        public ISBEntry entry;
         public Long timeStamp;
 
-        public EventItem(ISBIndex.ISBNode node, Long timeStamp) {
-            this.node = node;
+        public EventItem(ISBEntry entry, Long timeStamp) {
+            this.entry = entry;
             this.timeStamp = timeStamp;
         }
 
@@ -28,9 +28,9 @@ public class MCODBase extends OutlierDetector<ISBNode> {
             } else if (this.timeStamp < t.timeStamp) {
                 return -1;
             } else {
-                if (this.node.id > t.node.id)
+                if (this.entry.id > t.entry.id)
                     return +1;
-                else if (this.node.id < t.node.id)
+                else if (this.entry.id < t.entry.id)
                     return -1;
             }
             return 0;
@@ -44,11 +44,11 @@ public class MCODBase extends OutlierDetector<ISBNode> {
             setEvents = new TreeSet<EventItem>();
         }
 
-        public void Insert(ISBIndex.ISBNode node, Long expTime) {
-            setEvents.add(new EventItem(node, expTime));
+        public void insert(ISBEntry entry, Long expTime) {
+            setEvents.add(new EventItem(entry, expTime));
         }
 
-        public EventItem FindMin() {
+        public EventItem findMin() {
             if (setEvents.size() > 0) {
                 // events are sorted ascenting by expiration time
                 return setEvents.first();
@@ -56,8 +56,8 @@ public class MCODBase extends OutlierDetector<ISBNode> {
             return null;
         }
 
-        public EventItem ExtractMin() {
-            EventItem e = FindMin();
+        public EventItem extractMin() {
+            EventItem e = findMin();
             if (e != null) {
                 setEvents.remove(e);
                 return e;
@@ -85,8 +85,8 @@ public class MCODBase extends OutlierDetector<ISBNode> {
     protected MTreeMicroClusters mtreeMC;
     // set of micro-clusters (for trace)
     protected TreeSet<MicroCluster> setMC;
-    // nodes treated as new nodes when a mc removed
-    protected TreeSet<ISBIndex.ISBNode> nodesReinsert;
+    // Entries treated as new entries when a mc removed
+    protected TreeSet<ISBEntry> entriesReinsert;
     // index of objects not in any micro-cluster
     protected ISBIndex ISB_PD;
 
@@ -121,30 +121,30 @@ public class MCODBase extends OutlierDetector<ISBNode> {
         m_nOnlyOutlier = 0;
     }
 
-    protected void SetNodeType(ISBNode node, NodeType type) {
-        node.nodeType = type;
+    protected void setEntryType(ISBEntry entry, EntryType type) {
+        entry.entryType = type;
         // update statistics
-        if (type == NodeType.OUTLIER)
-            node.nOutlier++;
+        if (type == EntryType.OUTLIER)
+            entry.nOutlier++;
         else
-            node.nInlier++;
+            entry.nInlier++;
     }
 
-    protected void AddToEventQueue(ISBNode x, ISBNode nodeMinExp) {
-        if (nodeMinExp != null) {
-            Long expTime = GetExpirationTime(nodeMinExp);
-            eventQueue.Insert(x, expTime);
+    protected void addToEventQueue(ISBEntry x, ISBEntry entryMinExp) {
+        if (entryMinExp != null) {
+            Long expTime = getExpirationTime(entryMinExp);
+            eventQueue.insert(x, expTime);
         }
     }
 
-    protected Long GetExpirationTime(ISBNode node) {
-        return node.id + windowSize + 1;
+    protected Long getExpirationTime(ISBEntry entry) {
+        return entry.id + windowSize + 1;
     }
 
-    protected int getNodeSlide(ISBNode node) {
-        // Since node IDs begin from 1, we subtract 1 from the id so that the integer division
-        // operation always returns the correct slide the node belongs to.
-        long adjustedID = node.id - 1;
+    protected int getEntrySlide(ISBEntry entry) {
+        // Since entry IDs begin from 1, we subtract 1 from the id so that the integer division
+        // operation always returns the correct slide the entry belongs to.
+        long adjustedID = entry.id - 1;
 
         // The result is incremented by 1 since the slide index starts from 1.
         return (int)(adjustedID / slideSize) + 1;
@@ -156,24 +156,24 @@ public class MCODBase extends OutlierDetector<ISBNode> {
         windowEnd += slideSize;
     }
 
-    protected boolean IsSafeInlier(ISBNode node) {
-        return node.count_after >= m_k;
+    protected boolean isSafeInlier(ISBEntry entry) {
+        return entry.count_after >= m_k;
     }
 
-    protected void AddNode(ISBNode node) {
-        windowElements.add(node);
+    protected void addEntry(ISBEntry entry) {
+        windowElements.add(entry);
     }
 
-    protected void RemoveNode(ISBNode node) {
-        windowElements.remove(node);
+    protected void removeEntry(ISBEntry entry) {
+        windowElements.remove(entry);
         // update statistics
-        UpdateStatistics(node);
-        // Check whether the node should be recorded as a pure outlier
+        UpdateStatistics(entry);
+        // Check whether the entry should be recorded as a pure outlier
         // by the outlier detector
-        evaluateAsOutlier(node);
+        evaluateAsOutlier(entry);
     }
 
-    protected void AddMicroCluster(MicroCluster mc) {
+    protected void addMicroCluster(MicroCluster mc) {
         mtreeMC.add(mc);
         setMC.add(mc);
     }
@@ -193,26 +193,26 @@ public class MCODBase extends OutlierDetector<ISBNode> {
         }
     }
 
-    protected void UpdateStatistics(ISBIndex.ISBNode node) {
-        if ((node.nInlier > 0) && (node.nOutlier > 0))
+    protected void UpdateStatistics(ISBEntry entry) {
+        if ((entry.nInlier > 0) && (entry.nOutlier > 0))
             m_nBothInlierOutlier++;
-        else if (node.nInlier > 0)
+        else if (entry.nInlier > 0)
             m_nOnlyInlier++;
         else
             m_nOnlyOutlier++;
     }
 
     public HashMap<String, Integer> getResults() {
-        // get counters of expired nodes
+        // get counters of expired entries
         int nBothInlierOutlier = m_nBothInlierOutlier;
         int nOnlyInlier = m_nOnlyInlier;
         int nOnlyOutlier = m_nOnlyOutlier;
 
-        // add counters of non expired nodes still in window
-        for (ISBIndex.ISBNode node : windowElements) {
-            if ((node.nInlier > 0) && (node.nOutlier > 0))
+        // add counters of non expired entries still in window
+        for (ISBEntry entry : windowElements) {
+            if ((entry.nInlier > 0) && (entry.nOutlier > 0))
                 nBothInlierOutlier++;
-            else if (node.nInlier > 0)
+            else if (entry.nInlier > 0)
                 nOnlyInlier++;
             else
                 nOnlyOutlier++;
@@ -226,7 +226,7 @@ public class MCODBase extends OutlierDetector<ISBNode> {
         return results;
     }
 
-    protected double GetEuclideanDist(ISBNode n1, ISBNode n2)
+    protected double GetEuclideanDist(ISBEntry n1, ISBEntry n2)
     {
         double diff;
         double sum = 0;
@@ -238,10 +238,10 @@ public class MCODBase extends OutlierDetector<ISBNode> {
         return Math.sqrt(sum);
     }
 
-    protected Vector<SearchResultMC> RangeSearchMC(ISBNode nodeNew, double radius) {
+    protected Vector<SearchResultMC> RangeSearchMC(ISBEntry newEntry, double radius) {
         Vector<SearchResultMC> results = new Vector<SearchResultMC>();
-        // create a dummy mc in order to search w.r.t. nodeNew
-        MicroCluster dummy = new MicroCluster(nodeNew);
+        // create a dummy mc in order to search w.r.t. newEntry
+        MicroCluster dummy = new MicroCluster(newEntry);
         // query results are returned ascending by distance
         MTreeMicroClusters.Query query = mtreeMC.getNearestByRange(dummy, radius);
         for (MTreeMicroClusters.ResultItem q : query) {
