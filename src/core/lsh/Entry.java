@@ -18,10 +18,10 @@ public class Entry extends DataObj<Entry> implements Comparable<Entry> {
         super(id, values, obj);
 
         // init other fields
-        InitNode();
+        initNode();
     }
 
-    public void InitNode() {
+    public void initNode() {
         this.count_after = 0;
         this.entryType = EntryType.OUTLIER;
         this.nn_before = new ArrayList<>();

@@ -6,7 +6,7 @@ import java.util.TreeSet;
 import java.util.Vector;
 
 
-public class OutlierDetector<T extends DataObj<?>> {
+public class OutlierDetector<T extends DataObj<T>> {
     protected static final Long FIRST_OBJ_ID = 1L;
 
     // ID indicating the window's starting object

@@ -1,6 +1,6 @@
 package core;
 
-public class Outlier<T extends DataObj<?>> implements Comparable<Outlier> {
+public class Outlier<T extends DataObj<T>> implements Comparable<Outlier<T>> {
     public long id;
     public Object obj;
 

@@ -1,10 +1,12 @@
 package core.lsh;
 
+import core.DataObj;
+
 import java.util.Random;
 
-public class HashFunction {
+public class HashFunction<T extends DataObj<T>> {
     private final Random randomGenerator;
-    private final Entry randomVector;
+    private final DataObj<T> randomVector;
     private final double randomBias;
     private final double w;
 
@@ -18,7 +20,7 @@ public class HashFunction {
             randomValues[d] = randomGenerator.nextGaussian();
         }
 
-        randomVector = new Entry(randomValues);
+        randomVector = new DataObj<T>(randomValues);
     }
 
     private double getRandomDouble(int lowerBound, int upperBound) {
@@ -32,7 +34,7 @@ public class HashFunction {
         return randomGenerator.nextDouble() * (upperBound - lowerBound) + lowerBound;
     }
 
-    public int hash(Entry vector){
+    public int hash(T vector){
         double hashValue = (vector.dot(randomVector) + randomBias) / w;
         return (int) Math.floor(hashValue);
     }
