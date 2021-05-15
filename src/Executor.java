@@ -1,3 +1,4 @@
+import algorithms.ApproxMCLSHOD;
 import algorithms.ApproxMCOD;
 import algorithms.LSHOD;
 import algorithms.MCOD;
@@ -36,6 +37,7 @@ public class Executor {
     private MCOD mcodObj;
     private ApproxMCOD approxMCODObj;
     private LSHOD lshodObj;
+    private ApproxMCLSHOD approxMCLSHODObj;
 
 
     public Executor(String[] args) {
@@ -99,7 +101,12 @@ public class Executor {
             approxMCODObj = new ApproxMCOD(windowSize, slideSize, rParameter, kParameter, pdLimit, arFactor);
         } else if (chosenAlgorithm.equals("LSHOD")) {
             int dataDimensions = stream.getStreamDataDimensions();
-            lshodObj = new LSHOD(windowSize, slideSize, rParameter, kParameter, dataDimensions, 5, 10, (int)rParameter);
+            lshodObj = new LSHOD(windowSize, slideSize, rParameter, kParameter,
+                    dataDimensions, 5, 10, (int)rParameter);
+        } else if (chosenAlgorithm.equals("ApproxMCLSHOD")) {
+            int dataDimensions = stream.getStreamDataDimensions();
+            approxMCLSHODObj = new ApproxMCLSHOD(windowSize, slideSize, rParameter, kParameter,
+                    dataDimensions, 5, 10, (int)rParameter);
         }
 
         while (stream.hasNext()) {
@@ -114,14 +121,18 @@ public class Executor {
             approxMCODObj.evaluateRemainingElemsInWin();
         } else if (chosenAlgorithm.equals("LSHOD")) {
             lshodObj.evaluateRemainingElemsInWin();
+        } else if (chosenAlgorithm.equals("ApproxMCLSHOD")) {
+            approxMCLSHODObj.evaluateRemainingElemsInWin();
         }
 
         if (chosenAlgorithm.equals("MCOD")) {
-            exportOutliersToFile(mcodObj.GetOutliersFound(), outliersFile);
+            exportOutliersToFile(mcodObj.getOutliersFound(), outliersFile);
         } else if (chosenAlgorithm.equals("ApproxMCOD")) {
-            exportOutliersToFile(approxMCODObj.GetOutliersFound(), outliersFile);
+            exportOutliersToFile(approxMCODObj.getOutliersFound(), outliersFile);
         } else if (chosenAlgorithm.equals("LSHOD")) {
-            exportOutliersToFile(lshodObj.GetOutliersFound(), outliersFile);
+            exportOutliersToFile(lshodObj.getOutliersFound(), outliersFile);
+        } else if (chosenAlgorithm.equals("ApproxMCLSHOD")) {
+            exportOutliersToFile(approxMCLSHODObj.getOutliersFound(), outliersFile);
         }
     }
 
@@ -133,7 +144,7 @@ public class Executor {
 
             mcodObj.ProcessNewStreamObjects(stream.getIncomingData(slideSize));
 
-            UpdateMaxMemUsage();
+            updateMaxMemUsage();
             nTotalRunTime += (System.nanoTime() - nsNow) / (1024 * 1024);
 
             // update process time per object
@@ -149,7 +160,7 @@ public class Executor {
 
             approxMCODObj.ProcessNewStreamObjects(stream.getIncomingData(slideSize));
 
-            UpdateMaxMemUsage();
+            updateMaxMemUsage();
             nTotalRunTime += (System.nanoTime() - nsNow) / (1024 * 1024);
 
             // update process time per object
@@ -163,9 +174,25 @@ public class Executor {
         } else if (chosenAlgorithm.equals("LSHOD")) {
             nsNow = System.nanoTime();
 
-            lshodObj.ProcessNewStreamObjects(stream.getIncomingData(slideSize));
+            lshodObj.processNewStreamObjects(stream.getIncomingData(slideSize));
 
-            UpdateMaxMemUsage();
+            updateMaxMemUsage();
+            nTotalRunTime += (System.nanoTime() - nsNow) / (1024 * 1024);
+
+            // update process time per object
+            nProcessed++;
+            m_timePreObjSum += System.nanoTime() - nsNow;
+            if (nProcessed % m_timePreObjInterval == 0) {
+                nTimePerObj = ((double) m_timePreObjSum) / ((double) m_timePreObjInterval);
+                // init
+                m_timePreObjSum = 0L;
+            }
+        } else if (chosenAlgorithm.equals("ApproxMCLSHOD")) {
+            nsNow = System.nanoTime();
+
+            approxMCLSHODObj.processNewStreamObjects(stream.getIncomingData(slideSize));
+
+            updateMaxMemUsage();
             nTotalRunTime += (System.nanoTime() - nsNow) / (1024 * 1024);
 
             // update process time per object
@@ -202,6 +229,8 @@ public class Executor {
             results = approxMCODObj.getResults();
         } else if (chosenAlgorithm.equals("LSHOD")) {
             results = lshodObj.getResults();
+        } else if (chosenAlgorithm.equals("ApproxMCLSHOD")) {
+            results = approxMCLSHODObj.getResults();
         }
 
         return results;
@@ -230,7 +259,7 @@ public class Executor {
         System.out.println("  Total process time: " + String.format("%.2f ms", nTotalRunTime / 1000.0) + "\n");
     }
 
-    private void UpdateMaxMemUsage() {
+    private void updateMaxMemUsage() {
         int x = GetMemoryUsage();
         if (iMaxMemUsage < x) iMaxMemUsage = x;
     }

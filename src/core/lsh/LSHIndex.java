@@ -18,7 +18,7 @@ public class LSHIndex<T extends DataObj<T>> {
         }
     }
 
-    public void add(T entry) {
+    public void insert(T entry) {
         for (HashTable<T> hashTable : hashTables) {
             hashTable.add(entry);
         }
@@ -41,5 +41,26 @@ public class LSHIndex<T extends DataObj<T>> {
         }
 
         return new ArrayList<>(indexQueryResults);
+    }
+
+    // Returns the total amount of entries stored in the LSH Index
+    public int getSize() {
+        int sum = 0;
+
+        for (HashTable<T> hashTable : hashTables) {
+            sum += hashTable.getSize();
+        }
+
+        return sum;
+    }
+
+    public ArrayList<T> getAllEntries() {
+        ArrayList<T> allEntries = new ArrayList<>();
+
+        for (HashTable<T> hashTable : hashTables) {
+            allEntries.addAll(hashTable.getAllEntries());
+        }
+
+        return allEntries;
     }
 }

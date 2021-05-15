@@ -53,4 +53,25 @@ public class HashTable<T extends DataObj<T>> {
         // Combine the individual hashes into one
         return Arrays.toString(individualHashes);
     }
+
+    // Returns the total amount of entries stored in the Hash Table.
+    public int getSize() {
+        int sum = 0;
+
+        for (ArrayList<T> bucket : hashTable.values()) {
+            sum += bucket.size();
+        }
+
+        return sum;
+    }
+
+    public ArrayList<T> getAllEntries() {
+        ArrayList<T> allEntries = new ArrayList<>();
+
+        for (ArrayList<T> bucket : hashTable.values()) {
+            allEntries.addAll(bucket);
+        }
+
+        return allEntries;
+    }
 }

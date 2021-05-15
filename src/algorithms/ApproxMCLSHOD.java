@@ -21,15 +21,15 @@
 package algorithms;
 
 
+import core.lsh.LSHIndex;
 import core.mcodbase.ISBIndex.ISBEntry;
-import core.mcodbase.ISBIndex.ISBSearchResult;
 import core.mcodbase.ISBIndex.ISBEntry.EntryType;
 import core.mcodbase.MicroCluster;
 import core.StreamObj;
 
 import java.util.*;
 
-public class MCOD extends MCODBase {
+public class ApproxMCLSHOD extends MCODBase {
     // DIAG ONLY -- DELETE
     int diagExactMCCount = 0;
     int diagDiscardedMCCount = 0;
@@ -37,8 +37,13 @@ public class MCOD extends MCODBase {
     int diagAdditionsToPD = 0;
     int diagSafeInliersCount = 0;
 
-    public MCOD(int windowSize, int slideSize, double radius, int k) {
+    protected LSHIndex<ISBEntry> ISB_PD;
+
+    public ApproxMCLSHOD(int windowSize, int slideSize, double radius, int k, int dimensions,
+                         int numHashes, int numHashTables, int w) {
         super(windowSize, slideSize, radius, k);
+
+        ISB_PD = new LSHIndex<>(numHashes, numHashTables, w, dimensions);
 
         System.out.println("Init MCOD:");
         System.out.println("   window_size: " + windowSize);
@@ -109,7 +114,7 @@ public class MCOD extends MCODBase {
             mcClosest.addEntry(newEntry);
 
             // Update neighbors of set PD
-            Vector<ISBEntry> entries;
+            ArrayList<ISBEntry> entries;
             entries = ISB_PD.getAllEntries();
             for (ISBEntry q : entries) {
                 if (q.Rmc.contains(mcClosest)) {
@@ -134,28 +139,28 @@ public class MCOD extends MCODBase {
             // create helper sets for micro-cluster management
             ArrayList<ISBEntry> setNC = new ArrayList<ISBEntry>();
             ArrayList<ISBEntry> setNNC = new ArrayList<ISBEntry>();
-            Vector<ISBSearchResult> resultEntries;
-            resultEntries = ISB_PD.rangeSearch(newEntry, 1.5 * m_radius); // 1.5 ###
-            for (ISBSearchResult sr : resultEntries) {
-                ISBEntry q = sr.entry;
-                if (sr.distance <= m_radius) {
-                    // add q to neighs of newEntry
-                    addNeighbor(newEntry, q, false);
+            ArrayList<ISBEntry> resultEntries;
+            resultEntries = ISB_PD.query(newEntry); // 1.5 ###
+            for (ISBEntry sr : resultEntries) {
+                double srDistance = getEuclideanDist(newEntry, sr);
+                if (srDistance <= m_radius) {
+                    // add sr to neighs of newEntry
+                    addNeighbor(newEntry, sr, false);
                     if (isNewEntry) {
-                        // update q.count_after and its' outlierness
-                        addNeighbor(q, newEntry, true);
+                        // update sr.count_after and its' outlierness
+                        addNeighbor(sr, newEntry, true);
                     } else {
-                        if (entriesReinsert.contains(q)) {
-                            // update q.count_after or q.nn_before and its' outlierness
-                            addNeighbor(q, newEntry, true);
+                        if (entriesReinsert.contains(sr)) {
+                            // update sr.count_after or sr.nn_before and its' outlierness
+                            addNeighbor(sr, newEntry, true);
                         }
                     }
                 }
 
-                if (sr.distance <= m_radius / 2.0) {
-                    setNC.add(q);
+                if (srDistance <= m_radius / 2.0) {
+                    setNC.add(sr);
                 } else {
-                    setNNC.add(q);
+                    setNNC.add(sr);
                 }
             }
 
@@ -299,7 +304,7 @@ public class MCOD extends MCODBase {
         }
     }
 
-    public void ProcessNewStreamObjects(ArrayList<StreamObj> streamObjs) {
+    public void processNewStreamObjects(ArrayList<StreamObj> streamObjs) {
         if (windowElements.size() >= windowSize) {
             // If the window is full, perform a slide
             doSlide();

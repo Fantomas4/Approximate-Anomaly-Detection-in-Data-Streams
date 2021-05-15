@@ -73,7 +73,7 @@ public class ApproxMCOD extends MCODBase {
 
     void addNeighbor(ISBEntry entry, ISBEntry q, boolean bUpdateState) {
         // check if q still in window
-        if (isElemInWindow(q.id) == false) {
+        if (!isElemInWindow(q.id)) {
             return;
         }
 
@@ -118,7 +118,7 @@ public class ApproxMCOD extends MCODBase {
         // check if newEntry can be inserted to closest micro-cluster
         boolean bFoundMC = false;
         if (mcClosest != null) {
-            double d = GetEuclideanDist(newEntry, mcClosest.mcc);
+            double d = getEuclideanDist(newEntry, mcClosest.mcc);
             if (d <= m_radius / 2) {
                 bFoundMC = true;
             }
@@ -137,7 +137,7 @@ public class ApproxMCOD extends MCODBase {
             entries = ISB_PD.getAllEntries();
             for (ISBEntry q : entries) {
                 if (q.Rmc.contains(mcClosest)) {
-                    if (GetEuclideanDist(q, newEntry) <= m_radius) {
+                    if (getEuclideanDist(q, newEntry) <= m_radius) {
                         if (isNewEntry) {
                             // update q.count_after and its' outlierness
                             addNeighbor(q, newEntry, true);
@@ -181,7 +181,7 @@ public class ApproxMCOD extends MCODBase {
             ArrayList<ISBEntry> setNNC = new ArrayList<ISBEntry>();
             ArrayList<ISBEntry> setANC = new ArrayList<ISBEntry>();
             Vector<ISBSearchResult> resultEntries;
-            resultEntries = ISB_PD.RangeSearch(newEntry, 1.5 * m_radius); // 1.5 ###
+            resultEntries = ISB_PD.rangeSearch(newEntry, 1.5 * m_radius); // 1.5 ###
             for (ISBSearchResult sr : resultEntries) {
                 ISBEntry q = sr.entry;
                 if (sr.distance <= m_radius) {
@@ -267,7 +267,7 @@ public class ApproxMCOD extends MCODBase {
                 // Add to newEntry neighs entries of near micro-clusters
                 for (SearchResultMC sr : resultsMC) {
                     for (ISBEntry q : sr.mc.entries) {
-                        if (GetEuclideanDist(q, newEntry) <= m_radius) {
+                        if (getEuclideanDist(q, newEntry) <= m_radius) {
                             // add q to neighs of newEntry
                             addNeighbor(newEntry, q, false);
                         }
@@ -352,7 +352,7 @@ public class ApproxMCOD extends MCODBase {
 
                     // remove micro-cluster mc
                     try {
-                        RemoveMicroCluster(mc);
+                        removeMicroCluster(mc);
                     } catch (CorruptedDataStateException e) {
                         e.printStackTrace();
                     }
@@ -410,7 +410,7 @@ public class ApproxMCOD extends MCODBase {
         System.out.println("DIAG - Total -ACTIVE- MCs: " + setMC.size());
         System.out.println("DIAG - Total -ACTIVE- PD's Safe Inliers List Population: " + pdSafeInliers.size());
         System.out.println("DIAG - Total -ACTIVE- PD List Population: " + ISB_PD.getSize());
-        System.out.println("DIAG - TEMP OUTLIER SET SIZE: " + GetOutliersFound().size());
+        System.out.println("DIAG - TEMP OUTLIER SET SIZE: " + getOutliersFound().size());
         System.out.println("DIAG - TEMP Window size is: " + windowElements.size());
         System.out.println("--------------------------------------------------------");
     }

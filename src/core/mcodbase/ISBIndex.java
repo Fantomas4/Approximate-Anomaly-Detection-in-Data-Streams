@@ -167,7 +167,7 @@ public class ISBIndex {
         }
     }
     
-    public Vector<ISBSearchResult> RangeSearch(ISBEntry entry, double radius) {
+    public Vector<ISBSearchResult> rangeSearch(ISBEntry entry, double radius) {
         Vector<ISBSearchResult> results = new Vector<>();
         StreamObj obj;
         double d;

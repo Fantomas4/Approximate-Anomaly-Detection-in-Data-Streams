@@ -57,7 +57,7 @@ public class OutlierDetector<T extends DataObj<T>> {
         outliersFound.add(newOutlier);
     }
 
-    public Set<Outlier<T>> GetOutliersFound() {
+    public Set<Outlier<T>> getOutliersFound() {
         return outliersFound;
     }
 

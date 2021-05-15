@@ -167,7 +167,7 @@ public class MCODBase extends OutlierDetector<ISBEntry> {
     protected void removeEntry(ISBEntry entry) {
         windowElements.remove(entry);
         // update statistics
-        UpdateStatistics(entry);
+        updateStatistics(entry);
         // Check whether the entry should be recorded as a pure outlier
         // by the outlier detector
         evaluateAsOutlier(entry);
@@ -184,7 +184,7 @@ public class MCODBase extends OutlierDetector<ISBEntry> {
         }
     }
 
-    protected void RemoveMicroCluster(MicroCluster mc) throws CorruptedDataStateException {
+    protected void removeMicroCluster(MicroCluster mc) throws CorruptedDataStateException {
         boolean mtreeRemoval = mtreeMC.remove(mc);
         boolean setMCRemoval = setMC.remove(mc);
 
@@ -193,7 +193,7 @@ public class MCODBase extends OutlierDetector<ISBEntry> {
         }
     }
 
-    protected void UpdateStatistics(ISBEntry entry) {
+    protected void updateStatistics(ISBEntry entry) {
         if ((entry.nInlier > 0) && (entry.nOutlier > 0))
             m_nBothInlierOutlier++;
         else if (entry.nInlier > 0)
@@ -226,7 +226,7 @@ public class MCODBase extends OutlierDetector<ISBEntry> {
         return results;
     }
 
-    protected double GetEuclideanDist(ISBEntry n1, ISBEntry n2)
+    protected double getEuclideanDist(ISBEntry n1, ISBEntry n2)
     {
         double diff;
         double sum = 0;
