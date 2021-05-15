@@ -2,16 +2,56 @@ package core.lsh;
 
 import core.DataObj;
 
-import java.lang.reflect.Array;
 import java.util.*;
 
 public class HashTable<T extends DataObj<T>> {
-    private final HashMap<String, ArrayList<T>> hashTable;
+    private class HashBucket<T extends DataObj<T>> {
+        int k;
+        ArrayList<T> safeInliers;
+        ArrayList<T> bucketEntries;
+        Random randomGenerator;
+
+        public HashBucket(int k) {
+            this.k = k;
+
+            safeInliers = new ArrayList<>();
+            bucketEntries = new ArrayList<>();
+            randomGenerator = new Random();
+        }
+
+        public void add(T newEntry) {
+            while (bucketEntries.size() > k && safeInliers.size() > 0) {
+                // Try to reduce bucket size by removing
+                // random safe inliers
+                int randomIndex = randomGenerator.nextInt(safeInliers.size());
+                T removedSafeInlier = safeInliers.remove(randomIndex);
+                bucketEntries.remove(removedSafeInlier);
+            }
+
+            if (newEntry.count_after >= k) {
+                safeInliers.add(newEntry);
+            }
+            bucketEntries.add(newEntry);
+        }
+
+        public void remove(T newEntry) {
+            safeInliers.remove(newEntry);
+            bucketEntries.remove(newEntry);
+        }
+
+        public ArrayList<T> getEntries() {
+            return bucketEntries;
+        }
+    }
+
+    private final HashMap<String, HashBucket<T>> hashTable;
     private final int numHashes;
+    private final int k;
     private final ArrayList<HashFunction<T>> hashFunctions;
 
-    public HashTable(int numHashes, int w, int dimensions) {
+    public HashTable(int numHashes, int w, int dimensions, int k) {
         this.numHashes = numHashes;
+        this.k = k;
 
         hashTable = new HashMap<>();
         // Generate the hash functions of the hash table
@@ -27,7 +67,7 @@ public class HashTable<T extends DataObj<T>> {
         if (hashTable.containsKey(combinedHash)) {
             hashTable.get(combinedHash).add(entry);
         } else {
-            ArrayList<T> newBucket = new ArrayList<>();
+            HashBucket<T> newBucket = new HashBucket<>(k);
             newBucket.add(entry);
             hashTable.put(combinedHash, newBucket);
         }
@@ -40,7 +80,13 @@ public class HashTable<T extends DataObj<T>> {
 
     public ArrayList<T> query(T entry) {
         String combinedHash = generateCombinedHash(entry);
-        return hashTable.get(combinedHash);
+
+        HashBucket<T> resultHashBucket = hashTable.get(combinedHash);
+        if (resultHashBucket == null) {
+            return new ArrayList<>();
+        } else {
+            return resultHashBucket.getEntries();
+        }
     }
 
     private String generateCombinedHash(T entry) {
@@ -54,22 +100,22 @@ public class HashTable<T extends DataObj<T>> {
         return Arrays.toString(individualHashes);
     }
 
-    // Returns the total amount of entries stored in the Hash Table.
-    public int getSize() {
-        int sum = 0;
-
-        for (ArrayList<T> bucket : hashTable.values()) {
-            sum += bucket.size();
-        }
-
-        return sum;
-    }
-
+//    // Returns the total amount of entries stored in the Hash Table.
+//    public int getSize() {
+//        int sum = 0;
+//
+//        for (ArrayList<T> bucket : hashTable.values()) {
+//            sum += bucket.size();
+//        }
+//
+//        return sum;
+//    }
+//
     public ArrayList<T> getAllEntries() {
         ArrayList<T> allEntries = new ArrayList<>();
 
-        for (ArrayList<T> bucket : hashTable.values()) {
-            allEntries.addAll(bucket);
+        for (HashBucket<T> bucket : hashTable.values()) {
+            allEntries.addAll(bucket.getEntries());
         }
 
         return allEntries;

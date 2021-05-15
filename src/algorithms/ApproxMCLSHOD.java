@@ -43,7 +43,7 @@ public class ApproxMCLSHOD extends MCODBase {
                          int numHashes, int numHashTables, int w) {
         super(windowSize, slideSize, radius, k);
 
-        ISB_PD = new LSHIndex<>(numHashes, numHashTables, w, dimensions);
+        ISB_PD = new LSHIndex<>(numHashes, numHashTables, w, dimensions, k);
 
         System.out.println("Init MCOD:");
         System.out.println("   window_size: " + windowSize);
@@ -331,7 +331,7 @@ public class ApproxMCLSHOD extends MCODBase {
         System.out.println("DIAG - #Times a point was added to PD: " + diagAdditionsToPD);
         System.out.println("DIAG - #Safe inliers detected: " + diagSafeInliersCount);
         System.out.println("DIAG - Total -ACTIVE- MCs: " + setMC.size());
-        System.out.println("DIAG - Total -ACTIVE- PD List Population: " + ISB_PD.getSize());
+//        System.out.println("DIAG - Total -ACTIVE- PD List Population: " + ISB_PD.getSize());
         System.out.println("DIAG - TEMP OUTLIER SET SIZE: " + getOutliersFound().size());
         System.out.println("DIAG - TEMP Window size is: " + windowElements.size());
         System.out.println("-------------------------------------------------------");

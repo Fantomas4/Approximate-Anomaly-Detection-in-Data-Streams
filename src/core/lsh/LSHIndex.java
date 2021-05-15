@@ -10,11 +10,11 @@ import java.util.Set;
 public class LSHIndex<T extends DataObj<T>> {
     private final ArrayList<HashTable<T>> hashTables;
 
-    public LSHIndex(int numHashes, int numHashTables, int w, int dimensions) {
+    public LSHIndex(int numHashes, int numHashTables, int w, int dimensions, int k) {
         // Create the collection of hash tables
         hashTables = new ArrayList<>();
         for (int t = 0; t < numHashTables; t++) {
-            hashTables.add(new HashTable<T>(numHashes, w, dimensions));
+            hashTables.add(new HashTable<T>(numHashes, w, dimensions, k));
         }
     }
 
@@ -53,9 +53,9 @@ public class LSHIndex<T extends DataObj<T>> {
         return new ArrayList<>(uniqueEntries);
     }
 
-    // Returns the total amount of entries stored in the LSH Index
-    public int getSize() {
-        return getAllEntries().size();
-    }
+//    // Returns the total amount of entries stored in the LSH Index
+//    public int getSize() {
+//        return getAllEntries().size();
+//    }
 
 }

@@ -71,7 +71,7 @@ public class LSHOD extends OutlierDetector<Entry> {
     protected Long objId;
     protected EventQueue eventQueue;
     // LSH index of entries
-    protected LSHIndex lshIndex;
+    protected LSHIndex<Entry> lshIndex;
 
     protected double m_radius;
     protected int m_k;
@@ -91,7 +91,7 @@ public class LSHOD extends OutlierDetector<Entry> {
         objId = FIRST_OBJ_ID; // init object identifier
 
         // create LSH Index
-        lshIndex = new LSHIndex(numberOfHashes, numberOfHashTables, w, dimensions);
+        lshIndex = new LSHIndex<Entry>(numberOfHashes, numberOfHashTables, w, dimensions, k);
 
         // create event queue
         eventQueue = new EventQueue();
@@ -189,7 +189,7 @@ public class LSHOD extends OutlierDetector<Entry> {
 
     void addNeighbor(Entry entry, Entry q, boolean bUpdateState) {
         // check if q still in window
-        if (isElemInWindow(q.id) == false) {
+        if (!isElemInWindow(q.id)) {
             return;
         }
 
