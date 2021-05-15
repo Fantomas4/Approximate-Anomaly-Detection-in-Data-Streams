@@ -43,24 +43,19 @@ public class LSHIndex<T extends DataObj<T>> {
         return new ArrayList<>(indexQueryResults);
     }
 
+    public ArrayList<T> getAllEntries() {
+        HashSet<T> uniqueEntries = new HashSet<>();
+
+        for (HashTable<T> hashTable : hashTables) {
+            uniqueEntries.addAll(hashTable.getAllEntries());
+        }
+
+        return new ArrayList<>(uniqueEntries);
+    }
+
     // Returns the total amount of entries stored in the LSH Index
     public int getSize() {
-        int sum = 0;
-
-        for (HashTable<T> hashTable : hashTables) {
-            sum += hashTable.getSize();
-        }
-
-        return sum;
+        return getAllEntries().size();
     }
 
-    public ArrayList<T> getAllEntries() {
-        ArrayList<T> allEntries = new ArrayList<>();
-
-        for (HashTable<T> hashTable : hashTables) {
-            allEntries.addAll(hashTable.getAllEntries());
-        }
-
-        return allEntries;
-    }
 }

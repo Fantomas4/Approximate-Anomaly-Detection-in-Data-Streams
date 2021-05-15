@@ -37,7 +37,14 @@ public class ISBIndex {
 
 
         public ISBEntry(StreamObj obj, Long id) {
-            super(id, obj);
+            super(id, obj.getValues(), obj);
+
+            // init other fields
+            initEntry();
+        }
+
+        public ISBEntry(Long id) {
+            super(id, null, null);
 
             // init other fields
             initEntry();
@@ -79,7 +86,7 @@ public class ISBIndex {
         public ISBEntry getMinPrecNeigh(Long sinceId) {
             if (nn_before.size() > 0) {
                 int startPos;
-                ISBEntry dummy = new ISBEntry(null, sinceId);
+                ISBEntry dummy = new ISBEntry(sinceId);
 
                 int pos = Collections.binarySearch(nn_before, dummy);
                 if (pos < 0) {
@@ -101,7 +108,7 @@ public class ISBIndex {
             if (nn_before.size() > 0) {
                 // get number of neighs with id >= sinceId
                 int startPos;
-                ISBEntry dummy = new ISBEntry(null, sinceId);
+                ISBEntry dummy = new ISBEntry(sinceId);
                 int pos = Collections.binarySearch(nn_before, dummy);
                 if (pos < 0) {
                     // item does not exist, should insert at position startPos

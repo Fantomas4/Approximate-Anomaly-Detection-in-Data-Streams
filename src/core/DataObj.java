@@ -29,14 +29,14 @@ public class DataObj<T> {
         nInlier  = 0;
     }
 
-    public DataObj(Long id, StreamObj obj) {
-        this.id = id;
-        this.obj = obj;
-
-        // init statistics
-        nOutlier = 0;
-        nInlier  = 0;
-    }
+//    public DataObj(Long id, StreamObj obj) {
+//        this.id = id;
+//        this.obj = obj;
+//
+//        // init statistics
+//        nOutlier = 0;
+//        nInlier  = 0;
+//    }
 
     public DataObj(double[] values) {
         id = null;
