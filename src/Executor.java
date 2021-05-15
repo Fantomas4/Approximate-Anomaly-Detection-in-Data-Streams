@@ -106,7 +106,7 @@ public class Executor {
         } else if (chosenAlgorithm.equals("ApproxMCLSHOD")) {
             int dataDimensions = stream.getStreamDataDimensions();
             approxMCLSHODObj = new ApproxMCLSHOD(windowSize, slideSize, rParameter, kParameter,
-                    dataDimensions, 5, 10, (int)rParameter);
+                    dataDimensions, 5, 10, (int)(3 * rParameter / 2));
         }
 
         while (stream.hasNext()) {
