@@ -4,10 +4,9 @@ import core.StreamObj;
 import core.lsh.Entry;
 import core.OutlierDetector;
 import core.lsh.LSHIndex;
-import core.lsh.families.EuclideanDistance;
-import core.lsh.families.EuclidianHashFamily;
 
 import java.util.*;
+
 
 public class LSHOD extends OutlierDetector<Entry> {
 
@@ -43,11 +42,11 @@ public class LSHOD extends OutlierDetector<Entry> {
             setEvents = new TreeSet<EventItem>();
         }
 
-        public void Insert(Entry entry, Long expTime) {
+        public void insert(Entry entry, Long expTime) {
             setEvents.add(new EventItem(entry, expTime));
         }
 
-        public EventItem FindMin() {
+        public EventItem findMin() {
             if (setEvents.size() > 0) {
                 // events are sorted ascenting by expiration time
                 return setEvents.first();
@@ -55,8 +54,8 @@ public class LSHOD extends OutlierDetector<Entry> {
             return null;
         }
 
-        public EventItem ExtractMin() {
-            EventItem e = FindMin();
+        public EventItem extractMin() {
+            EventItem e = findMin();
             if (e != null) {
                 setEvents.remove(e);
                 return e;
@@ -72,8 +71,7 @@ public class LSHOD extends OutlierDetector<Entry> {
     protected Long objId;
     protected EventQueue eventQueue;
     // LSH index of entries
-    protected LSHIndex lshIndex;
-    private EuclideanDistance euclideanDistance;
+    protected LSHIndex<Entry> lshIndex;
 
     protected double m_radius;
     protected int m_k;
@@ -84,7 +82,7 @@ public class LSHOD extends OutlierDetector<Entry> {
     public int m_nOnlyInlier;
     public int m_nOnlyOutlier;
 
-    public LSHOD(int windowSize, int slideSize,  double radius, int k, int dimensions, int numberOfHashes, int numberOfHashTables) {
+    public LSHOD(int windowSize, int slideSize,  double radius, int k, int dimensions, int numberOfHashes, int numberOfHashTables, int w) {
         super(windowSize, slideSize);
 
         m_radius = radius;
@@ -93,8 +91,7 @@ public class LSHOD extends OutlierDetector<Entry> {
         objId = FIRST_OBJ_ID; // init object identifier
 
         // create LSH Index
-        lshIndex = new LSHIndex(new EuclidianHashFamily(radius, dimensions), numberOfHashes, numberOfHashTables);
-        euclideanDistance = new EuclideanDistance();
+        lshIndex = new LSHIndex<Entry>(numberOfHashes, numberOfHashTables, w, dimensions, k);
 
         // create event queue
         eventQueue = new EventQueue();
@@ -105,7 +102,7 @@ public class LSHOD extends OutlierDetector<Entry> {
         m_nOnlyOutlier = 0;
     }
 
-    protected void SetNodeType(Entry entry, Entry.EntryType type) {
+    protected void setNodeType(Entry entry, Entry.EntryType type) {
         entry.entryType = type;
         // update statistics
         if (type == Entry.EntryType.OUTLIER)
@@ -114,14 +111,14 @@ public class LSHOD extends OutlierDetector<Entry> {
             entry.nInlier++;
     }
 
-    protected void AddToEventQueue(Entry x, Entry entryMinExp) {
+    protected void addToEventQueue(Entry x, Entry entryMinExp) {
         if (entryMinExp != null) {
-            Long expTime = GetExpirationTime(entryMinExp);
-            eventQueue.Insert(x, expTime);
+            Long expTime = getExpirationTime(entryMinExp);
+            eventQueue.insert(x, expTime);
         }
     }
 
-    protected Long GetExpirationTime(Entry entry) {
+    protected Long getExpirationTime(Entry entry) {
         return entry.id + windowSize + 1;
     }
 
@@ -140,24 +137,24 @@ public class LSHOD extends OutlierDetector<Entry> {
         windowEnd += slideSize;
     }
 
-    protected boolean IsSafeInlier(Entry entry) {
+    protected boolean isSafeInlier(Entry entry) {
         return entry.count_after >= m_k;
     }
 
-    protected void AddNode(Entry entry) {
+    protected void addNode(Entry entry) {
         windowElements.add(entry);
     }
 
-    protected void RemoveEntry(Entry entry) {
+    protected void removeEntry(Entry entry) {
         windowElements.remove(entry);
         // update statistics
-        UpdateStatistics(entry);
+        updateStatistics(entry);
         // Check whether the node should be recorded as a pure outlier
         // by the outlier detector
         evaluateAsOutlier(entry);
     }
 
-    protected void UpdateStatistics(Entry entry) {
+    protected void updateStatistics(Entry entry) {
         if ((entry.nInlier > 0) && (entry.nOutlier > 0))
             m_nBothInlierOutlier++;
         else if (entry.nInlier > 0)
@@ -190,16 +187,16 @@ public class LSHOD extends OutlierDetector<Entry> {
         return results;
     }
 
-    void AddNeighbor(Entry entry, Entry q, boolean bUpdateState) {
+    void addNeighbor(Entry entry, Entry q, boolean bUpdateState) {
         // check if q still in window
-        if (IsElemInWindow(q.id) == false) {
+        if (!isElemInWindow(q.id)) {
             return;
         }
 
         if (getNodeSlide(q) >= getNodeSlide(entry)) {
             entry.count_after ++;
         } else {
-            entry.AddPrecNeigh(q);
+            entry.addPrecNeigh(q);
         }
 //        if (q.id < node.id) {
 //            node.AddPrecNeigh(q);
@@ -209,104 +206,104 @@ public class LSHOD extends OutlierDetector<Entry> {
 
         if (bUpdateState) {
             // check if entry is an inlier or outlier
-            int count = entry.count_after + entry.CountPrecNeighs(windowStart);
+            int count = entry.count_after + entry.countPrecNeighs(windowStart);
             if ((entry.entryType == Entry.EntryType.OUTLIER) && (count >= m_k)) {
                 // remove entry from outliers
                 // mark entry as an inlier
-                SetNodeType(entry, Entry.EntryType.INLIER);
+                setNodeType(entry, Entry.EntryType.INLIER);
                 // If entry is an unsafe inlier, insert it to the event queue
-                if (!IsSafeInlier(entry)) {
-                    Entry entryMinExp = entry.GetMinPrecNeigh(windowStart);
-                    AddToEventQueue(entry, entryMinExp);
+                if (!isSafeInlier(entry)) {
+                    Entry entryMinExp = entry.getMinPrecNeigh(windowStart);
+                    addToEventQueue(entry, entryMinExp);
                 }
             }
         }
     }
 
-    void ProcessNewEntry(Entry entryNew) {
+    void processNewEntry(Entry entryNew) {
         // Perform R range query in LSH Index to find the points relatively close to entryNew.
-        List<Entry> resultEntries = lshIndex.rangeQuery(entryNew);
+        List<Entry> resultEntries = lshIndex.query(entryNew);
         nRangeQueriesExecuted ++;
 
         for (Entry resultEntry : resultEntries) {
             // Add the neighbors found by the range query to entryNew
-            AddNeighbor(entryNew, resultEntry, false);
+            addNeighbor(entryNew, resultEntry, false);
 
             // Update new entryNew's neighbors by adding entryNew to them
-            AddNeighbor(resultEntry, entryNew, true);
+            addNeighbor(resultEntry, entryNew, true);
         }
 
         // Add entryNew to the LSH Index
-        lshIndex.add(entryNew);
+        lshIndex.insert(entryNew);
 
         // Check if nodeNew is an inlier or outlier
-        int count = entryNew.CountPrecNeighs(windowStart) + entryNew.count_after;
+        int count = entryNew.countPrecNeighs(windowStart) + entryNew.count_after;
         if (count >= m_k) {
             // nodeNew is an inlier
-            SetNodeType(entryNew, Entry.EntryType.INLIER);
+            setNodeType(entryNew, Entry.EntryType.INLIER);
             // If nodeNew is an unsafe inlier, insert it to the event queue
-            if (!IsSafeInlier(entryNew)) {
-                Entry entryMinExp = entryNew.GetMinPrecNeigh(windowStart);
-                AddToEventQueue(entryNew, entryMinExp);
+            if (!isSafeInlier(entryNew)) {
+                Entry entryMinExp = entryNew.getMinPrecNeigh(windowStart);
+                addToEventQueue(entryNew, entryMinExp);
             }
         } else {
             // nodeNew is an outlier
-            SetNodeType(entryNew, Entry.EntryType.OUTLIER);
+            setNodeType(entryNew, Entry.EntryType.OUTLIER);
         }
     }
 
-    void ProcessEventQueue(Entry entryExpired) {
-        EventItem e = eventQueue.FindMin();
+    void processEventQueue(Entry entryExpired) {
+        EventItem e = eventQueue.findMin();
         while ((e != null) && (e.timeStamp <= windowEnd)) {
-            e = eventQueue.ExtractMin();
+            e = eventQueue.extractMin();
             Entry x = e.entry;
             // node x must be in window and not in any micro-cluster
-            boolean bValid = IsElemInWindow(x.id);
+            boolean bValid = isElemInWindow(x.id);
             if (bValid) {
                 // remove nodeExpired from x.nn_before
-                x.RemovePrecNeigh(entryExpired);
+                x.removePrecNeigh(entryExpired);
                 // get amount of neighbors of x
-                int count = x.count_after + x.CountPrecNeighs(windowStart);
+                int count = x.count_after + x.countPrecNeighs(windowStart);
                 if (count < m_k) {
                     // x is an outlier
-                    SetNodeType(x, Entry.EntryType.OUTLIER);
+                    setNodeType(x, Entry.EntryType.OUTLIER);
                 } else {
                     // If x is an unsafe inlier, add it to the event queue
-                    if (!IsSafeInlier(x)) {
+                    if (!isSafeInlier(x)) {
                         // get oldest preceding neighbor of x
-                        Entry entryMinExp = x.GetMinPrecNeigh(windowStart);
+                        Entry entryMinExp = x.getMinPrecNeigh(windowStart);
                         // add x to event queue
-                        AddToEventQueue(x, entryMinExp);
+                        addToEventQueue(x, entryMinExp);
                     }
                 }
             }
-            e = eventQueue.FindMin();
+            e = eventQueue.findMin();
         }
     }
 
-    void ProcessExpiredNodes(ArrayList<Entry> expiredEntries) {
+    void processExpiredNodes(ArrayList<Entry> expiredEntries) {
         for (Entry expiredEntry : expiredEntries) {
             // Remove expiredEntry from LSH Index
             lshIndex.remove(expiredEntry);
 
-            RemoveEntry(expiredEntry);
-            ProcessEventQueue(expiredEntry);
+            removeEntry(expiredEntry);
+            processEventQueue(expiredEntry);
         }
     }
 
-    public void ProcessNewStreamObjects(ArrayList<StreamObj> streamObjs) {
+    public void processNewStreamObjects(ArrayList<StreamObj> streamObjs) {
         if (windowElements.size() >= windowSize) {
             // If the window is full, perform a slide
             doSlide();
             // Process expired nodes
-            ProcessExpiredNodes(GetExpiredEntries());
+            processExpiredNodes(getExpiredEntries());
         }
 
         // Process new nodes
         for (StreamObj streamObj : streamObjs) {
-            Entry entryNew = new Entry(null, objId, streamObj.getValues(), streamObj); // create new ISB node
-            AddNode(entryNew); // add nodeNew to window
-            ProcessNewEntry(entryNew);
+            Entry entryNew = new Entry(objId, streamObj.getValues(), streamObj); // create new ISB node
+            addNode(entryNew); // add nodeNew to window
+            processNewEntry(entryNew);
 
             objId++; // update object identifier
         }
@@ -315,12 +312,12 @@ public class LSHOD extends OutlierDetector<Entry> {
         // DIAG ONLY -- DELETE
         System.out.println("------------------------ LSHOD ------------------------");
         System.out.println("DIAG - Current stream object: " + (objId - 1));
-        System.out.println("DIAG - TEMP OUTLIER SET SIZE: " + GetOutliersFound().size());
+        System.out.println("DIAG - TEMP OUTLIER SET SIZE: " + getOutliersFound().size());
         System.out.println("DIAG - TEMP Window size is: " + windowElements.size());
         System.out.println("-------------------------------------------------------");
     }
 
-    private ArrayList<Entry> GetExpiredEntries() {
+    private ArrayList<Entry> getExpiredEntries() {
         ArrayList<Entry> expiredNodes = new ArrayList<>();
         for (Entry entry : windowElements) {
             // check if node has expired

@@ -21,9 +21,9 @@
 package algorithms;
 
 
-import core.mcodbase.ISBIndex.ISBNode;
+import core.mcodbase.ISBIndex.ISBEntry;
 import core.mcodbase.ISBIndex.ISBSearchResult;
-import core.mcodbase.ISBIndex.ISBNode.NodeType;
+import core.mcodbase.ISBIndex.ISBEntry.EntryType;
 import core.mcodbase.MicroCluster;
 import core.StreamObj;
 
@@ -39,7 +39,7 @@ public class ApproxMCOD extends MCODBase {
 
     private double m_ar;
     private int m_pdLimit;
-    private Set<ISBNode> pdSafeInliers; // list of safe inliers
+    private Set<ISBEntry> pdSafeInliers; // list of safe inliers
 
     private Random m_Random;
 
@@ -61,53 +61,53 @@ public class ApproxMCOD extends MCODBase {
         System.out.println("   Approximation radius: " + m_ar);
     }
 
-    ISBNode GetSafeInlier(int idx) {
-        ISBNode node = null;
+    ISBEntry getSafeInlier(int idx) {
+        ISBEntry entry = null;
         Iterator it = pdSafeInliers.iterator();
         while (idx >= 0) {
-            node = (ISBNode)it.next();
+            entry = (ISBEntry)it.next();
             idx--;
         }
-        return node;
+        return entry;
     }
 
-    void AddNeighbor(ISBNode node, ISBNode q, boolean bUpdateState) {
+    void addNeighbor(ISBEntry entry, ISBEntry q, boolean bUpdateState) {
         // check if q still in window
-        if (IsElemInWindow(q.id) == false) {
+        if (!isElemInWindow(q.id)) {
             return;
         }
 
-        if (getNodeSlide(q) >= getNodeSlide(node)) {
-            node.count_after ++;
+        if (getEntrySlide(q) >= getEntrySlide(entry)) {
+            entry.count_after ++;
         } else {
-            node.AddPrecNeigh(q);
+            entry.addPrecNeigh(q);
         }
-//        if (q.id < node.id) {
-//            node.AddPrecNeigh(q);
+//        if (q.id < entry.id) {
+//            entry.AddPrecNeigh(q);
 //        } else {
-//            node.count_after++;
+//            entry.count_after++;
 //        }
 
         if (bUpdateState) {
-            // check if node inlier or outlier
-            int count = node.count_after + node.CountPrecNeighs(windowStart);
-            if ((node.nodeType == NodeType.OUTLIER) && (count >= m_k)) {
-                // add node to inlier set PD
-                SetNodeType(node, NodeType.INLIER_PD);
-                // If node is an unsafe inlier, insert it to the event queue
-                if (!IsSafeInlier(node)) {
-                    ISBNode nodeMinExp = node.GetMinPrecNeigh(windowStart);
-                    AddToEventQueue(node, nodeMinExp);
+            // check if entry inlier or outlier
+            int count = entry.count_after + entry.countPrecNeighs(windowStart);
+            if ((entry.entryType == EntryType.OUTLIER) && (count >= m_k)) {
+                // add entry to inlier set PD
+                setEntryType(entry, EntryType.INLIER_PD);
+                // If entry is an unsafe inlier, insert it to the event queue
+                if (!isSafeInlier(entry)) {
+                    ISBEntry entryMinExp = entry.getMinPrecNeigh(windowStart);
+                    addToEventQueue(entry, entryMinExp);
                 }
             }
         }
     }
 
-    void ProcessNewNode(ISBNode nodeNew, boolean bNewNode) {
-        // Perform 3R/2 range query to cluster centers w.r.t new node
+    void processNewEntry(ISBEntry newEntry, boolean isNewEntry) {
+        // Perform 3R/2 range query to cluster centers w.r.t new entry
         Vector<SearchResultMC> resultsMC;
         // results are sorted ascenting by distance
-        resultsMC = RangeSearchMC(nodeNew, 1.5 * m_radius);
+        resultsMC = RangeSearchMC(newEntry, 1.5 * m_radius);
 
         // Get closest micro-cluster
         MicroCluster mcClosest = null;
@@ -115,40 +115,40 @@ public class ApproxMCOD extends MCODBase {
             mcClosest = resultsMC.get(0).mc;
         }
 
-        // check if nodeNew can be inserted to closest micro-cluster
+        // check if newEntry can be inserted to closest micro-cluster
         boolean bFoundMC = false;
         if (mcClosest != null) {
-            double d = GetEuclideanDist(nodeNew, mcClosest.mcc);
+            double d = getEuclideanDist(newEntry, mcClosest.mcc);
             if (d <= m_radius / 2) {
                 bFoundMC = true;
             }
         }
 
         if (bFoundMC) {
-            // Add new node to micro-cluster
+            // Add new entry to micro-cluster
             // DIAG ONLY -- DELETE
             diagAdditionsToMC++;
-            nodeNew.mc = mcClosest;
-            SetNodeType(nodeNew, NodeType.INLIER_MC);
-            mcClosest.AddNode(nodeNew);
+            newEntry.mc = mcClosest;
+            setEntryType(newEntry, EntryType.INLIER_MC);
+            mcClosest.addEntry(newEntry);
 
             // Update neighbors of set PD
-            Vector<ISBNode> nodes;
-            nodes = ISB_PD.GetAllNodes();
-            for (ISBNode q : nodes) {
+            Vector<ISBEntry> entries;
+            entries = ISB_PD.getAllEntries();
+            for (ISBEntry q : entries) {
                 if (q.Rmc.contains(mcClosest)) {
-                    if (GetEuclideanDist(q, nodeNew) <= m_radius) {
-                        if (bNewNode) {
+                    if (getEuclideanDist(q, newEntry) <= m_radius) {
+                        if (isNewEntry) {
                             // update q.count_after and its' outlierness
-                            AddNeighbor(q, nodeNew, true);
+                            addNeighbor(q, newEntry, true);
                             // Add q to PD's safe inlier set if it is a safe inlier
-                            if (IsSafeInlier(q)) pdSafeInliers.add(q);
+                            if (isSafeInlier(q)) pdSafeInliers.add(q);
                         } else {
-                            if (nodesReinsert.contains(q)) {
+                            if (entriesReinsert.contains(q)) {
                                 // update q.count_after or q.nn_before and its' outlierness
-                                AddNeighbor(q, nodeNew, true);
+                                addNeighbor(q, newEntry, true);
                                 // Add q to PD's safe inlier set if it is a safe inlier
-                                if (IsSafeInlier(q)) pdSafeInliers.add(q);
+                                if (isSafeInlier(q)) pdSafeInliers.add(q);
                             }
                         }
                     }
@@ -159,11 +159,11 @@ public class ApproxMCOD extends MCODBase {
             // Check ISB_PD's size to determine if a random safe inlier must be removed
             boolean safeInlierDeleted = false;
             int nSafeInliers = pdSafeInliers.size();
-            while (ISB_PD.GetSize() > m_pdLimit && nSafeInliers > 0) {
+            while (ISB_PD.getSize() > m_pdLimit && nSafeInliers > 0) {
                 int idx = m_Random.nextInt(nSafeInliers);
-                ISBNode si = GetSafeInlier(idx);
+                ISBEntry si = getSafeInlier(idx);
                 // Remove the selected safe inlier from the PD's ISB
-                ISB_PD.Remove(si);
+                ISB_PD.remove(si);
                 // Remove the selected safe inlier from the PD's safe inlier set
                 pdSafeInliers.remove(si);
                 // Update the value of the deletion flag
@@ -173,31 +173,31 @@ public class ApproxMCOD extends MCODBase {
             }
 
             // No close enough micro-cluster found.
-            // Perform 3R/2 range query to nodes in set PD.
+            // Perform 3R/2 range query to entries in set PD.
             nRangeQueriesExecuted++;
 
             // create helper sets for micro-cluster management
-            ArrayList<ISBNode> setNC = new ArrayList<ISBNode>();
-            ArrayList<ISBNode> setNNC = new ArrayList<ISBNode>();
-            ArrayList<ISBNode> setANC = new ArrayList<ISBNode>();
-            Vector<ISBSearchResult> resultNodes;
-            resultNodes = ISB_PD.RangeSearch(nodeNew, 1.5 * m_radius); // 1.5 ###
-            for (ISBSearchResult sr : resultNodes) {
-                ISBNode q = sr.node;
+            ArrayList<ISBEntry> setNC = new ArrayList<ISBEntry>();
+            ArrayList<ISBEntry> setNNC = new ArrayList<ISBEntry>();
+            ArrayList<ISBEntry> setANC = new ArrayList<ISBEntry>();
+            Vector<ISBSearchResult> resultEntries;
+            resultEntries = ISB_PD.rangeSearch(newEntry, 1.5 * m_radius); // 1.5 ###
+            for (ISBSearchResult sr : resultEntries) {
+                ISBEntry q = sr.entry;
                 if (sr.distance <= m_radius) {
-                    // add q to neighs of nodeNew
-                    AddNeighbor(nodeNew, q, false);
-                    if (bNewNode) {
+                    // add q to neighs of newEntry
+                    addNeighbor(newEntry, q, false);
+                    if (isNewEntry) {
                         // update q.count_after and its' outlierness
-                        AddNeighbor(q, nodeNew, true);
+                        addNeighbor(q, newEntry, true);
                         // Add q to PD's safe inlier set if it is a safe inlier
-                        if (IsSafeInlier(q)) pdSafeInliers.add(q);
+                        if (isSafeInlier(q)) pdSafeInliers.add(q);
                     } else {
-                        if (nodesReinsert.contains(q)) {
+                        if (entriesReinsert.contains(q)) {
                             // update q.count_after or q.nn_before and its' outlierness
-                            AddNeighbor(q, nodeNew, true);
+                            addNeighbor(q, newEntry, true);
                             // Add q to PD's safe inlier set if it is a safe inlier
-                            if (IsSafeInlier(q)) pdSafeInliers.add(q);
+                            if (isSafeInlier(q)) pdSafeInliers.add(q);
                         }
                     }
                 }
@@ -225,158 +225,158 @@ public class ApproxMCOD extends MCODBase {
                 // DIAG ONLY -- DELETE
                 diagExactMCCount ++;
 
-                // create new micro-cluster with center nodeNew
-                MicroCluster mcNew = new MicroCluster(nodeNew);
-                AddMicroCluster(mcNew);
-                nodeNew.mc = mcNew;
+                // create new micro-cluster with center newEntry
+                MicroCluster mcNew = new MicroCluster(newEntry);
+                addMicroCluster(mcNew);
+                newEntry.mc = mcNew;
                 // DIAG ONLY -- DELETE
                 diagAdditionsToMC++;
-                SetNodeType(nodeNew, NodeType.INLIER_MC);
+                setEntryType(newEntry, EntryType.INLIER_MC);
 
-                // Add to new mc nodes within range R/2
-                for (ISBNode q : setNC) {
+                // Add to new mc entries within range R/2
+                for (ISBEntry q : setNC) {
                     q.mc = mcNew;
                     // DIAG ONLY -- DELETE
                     diagAdditionsToMC++;
-                    mcNew.AddNode(q);
+                    mcNew.addEntry(q);
                     // move q from set PD to set inlier-mc
-                    SetNodeType(q, NodeType.INLIER_MC);
-                    ISB_PD.Remove(q);
+                    setEntryType(q, EntryType.INLIER_MC);
+                    ISB_PD.remove(q);
                     // If q is a safe inlier, also remove it from the PD's safe inlier set.
-                    if (IsSafeInlier(q)) pdSafeInliers.remove(q);
+                    if (isSafeInlier(q)) pdSafeInliers.remove(q);
                 }
-                // Add to new mc nodes within range ar
-                for (ISBNode q : setANC) {
+                // Add to new mc entries within range ar
+                for (ISBEntry q : setANC) {
                     q.mc = mcNew;
                     // DIAG ONLY -- DELETE
                     diagAdditionsToMC++;
-                    mcNew.AddNode(q);
+                    mcNew.addEntry(q);
                     // move q from set PD to set inlier-mc
-                    SetNodeType(q, NodeType.INLIER_MC);
-                    ISB_PD.Remove(q);
+                    setEntryType(q, EntryType.INLIER_MC);
+                    ISB_PD.remove(q);
                     // If q is a safe inlier, also remove it from the PD's safe inlier set.
-                    if (IsSafeInlier(q)) pdSafeInliers.remove(q);
+                    if (isSafeInlier(q)) pdSafeInliers.remove(q);
                 }
 
 
-                // Update Rmc lists of nodes of PD in range 3R/2 from mcNew
-                for (ISBNode q : setNNC) {
+                // Update Rmc lists of entries of PD in range 3R/2 from mcNew
+                for (ISBEntry q : setNNC) {
                     q.Rmc.add(mcNew);
                 }
             } else {
-                // Add to nodeNew neighs nodes of near micro-clusters
+                // Add to newEntry neighs entries of near micro-clusters
                 for (SearchResultMC sr : resultsMC) {
-                    for (ISBNode q : sr.mc.nodes) {
-                        if (GetEuclideanDist(q, nodeNew) <= m_radius) {
-                            // add q to neighs of nodeNew
-                            AddNeighbor(nodeNew, q, false);
+                    for (ISBEntry q : sr.mc.entries) {
+                        if (getEuclideanDist(q, newEntry) <= m_radius) {
+                            // add q to neighs of newEntry
+                            addNeighbor(newEntry, q, false);
                         }
                     }
                 }
 
-                // check if nodeNew is an inlier or outlier
-                // use both nn_before and count_after for case bNewNode=false
-                int count = nodeNew.CountPrecNeighs(windowStart) + nodeNew.count_after;
+                // check if newEntry is an inlier or outlier
+                // use both nn_before and count_after for case isNewEntry=false
+                int count = newEntry.countPrecNeighs(windowStart) + newEntry.count_after;
                 if (count >= m_k) {
-                    // nodeNew is an inlier
-                    SetNodeType(nodeNew, NodeType.INLIER_PD);
-                    // If nodeNew is an unsafe inlier, insert it to the event queue
-                    if (!IsSafeInlier(nodeNew)) {
-                        ISBNode nodeMinExp = nodeNew.GetMinPrecNeigh(windowStart);
-                        AddToEventQueue(nodeNew, nodeMinExp);
+                    // newEntry is an inlier
+                    setEntryType(newEntry, EntryType.INLIER_PD);
+                    // If newEntry is an unsafe inlier, insert it to the event queue
+                    if (!isSafeInlier(newEntry)) {
+                        ISBEntry entryMinExp = newEntry.getMinPrecNeigh(windowStart);
+                        addToEventQueue(newEntry, entryMinExp);
                     }
                 } else {
-                    // nodeNew is an outlier
-                    SetNodeType(nodeNew, NodeType.OUTLIER);
+                    // newEntry is an outlier
+                    setEntryType(newEntry, EntryType.OUTLIER);
                 }
 
-                // If nodeNew is not a safe inlier, add it to PD
-                // If nodeNew is a safe inlier, add it to PD only if PD size limit has not been reached.
-                if (!IsSafeInlier(nodeNew) || (IsSafeInlier(nodeNew) && ISB_PD.GetSize() < m_pdLimit)) {
-                    // Insert nodeNew to index of nodes of PD
-                    ISB_PD.Insert(nodeNew);
+                // If newEntry is not a safe inlier, add it to PD
+                // If newEntry is a safe inlier, add it to PD only if PD size limit has not been reached.
+                if (!isSafeInlier(newEntry) || (isSafeInlier(newEntry) && ISB_PD.getSize() < m_pdLimit)) {
+                    // Insert newEntry to index of entries of PD
+                    ISB_PD.insert(newEntry);
                     diagAdditionsToPD++;
 
-                    // Update nodeNew.Rmc
+                    // Update newEntry.Rmc
                     for (SearchResultMC sr : resultsMC) {
-                        nodeNew.Rmc.add(sr.mc);
+                        newEntry.Rmc.add(sr.mc);
                     }
                 }
             }
         }
     }
 
-    void ProcessEventQueue(ISBNode nodeExpired) {
+    void ProcessEventQueue(ISBEntry entryExpired) {
         // DIAG ONLY -- DELETE
         diagSafeInliersCount = 0;
 
-        EventItem e = eventQueue.FindMin();
+        EventItem e = eventQueue.findMin();
         while ((e != null) && (e.timeStamp <= windowEnd)) {
-            e = eventQueue.ExtractMin();
-            ISBNode x = e.node;
-            // node x must be in window and not in any micro-cluster
-            boolean bValid = ( IsElemInWindow(x.id) && (x.mc == null) );
+            e = eventQueue.extractMin();
+            ISBEntry x = e.entry;
+            // entry x must be in window and not in any micro-cluster
+            boolean bValid = ( isElemInWindow(x.id) && (x.mc == null) );
             if (bValid) {
-                // remove nodeExpired from x.nn_before
-                x.RemovePrecNeigh(nodeExpired);
+                // remove entryExpired from x.nn_before
+                x.removePrecNeigh(entryExpired);
                 // get amount of neighbors of x
-                int count = x.count_after + x.CountPrecNeighs(windowStart);
+                int count = x.count_after + x.countPrecNeighs(windowStart);
                 if (count < m_k) {
                     // x is an outlier
-                    SetNodeType(x, NodeType.OUTLIER);
+                    setEntryType(x, EntryType.OUTLIER);
                 } else {
                     // DIAG ONLY -- DELETE
                     if (x.count_after >= m_k) diagSafeInliersCount++;
 
                     // If x is an unsafe inlier, add it to the event queue
-                    if (!IsSafeInlier(x)) {
+                    if (!isSafeInlier(x)) {
                         // get oldest preceding neighbor of x
-                        ISBNode nodeMinExp = x.GetMinPrecNeigh(windowStart);
+                        ISBEntry entryMinExp = x.getMinPrecNeigh(windowStart);
                         // add x to event queue
-                        AddToEventQueue(x, nodeMinExp);
+                        addToEventQueue(x, entryMinExp);
                     }
                 }
             }
-            e = eventQueue.FindMin();
+            e = eventQueue.findMin();
         }
     }
 
-    void ProcessExpiredNodes(ArrayList<ISBNode> expiredNodes) {
-        for (ISBNode expiredNode : expiredNodes) {
-            MicroCluster mc = expiredNode.mc;
+    void processExpiredEntries(ArrayList<ISBEntry> expiredEntries) {
+        for (ISBEntry expiredEntry : expiredEntries) {
+            MicroCluster mc = expiredEntry.mc;
             if (mc != null) {
-                mc.RemoveNode(expiredNode);
-                if (mc.GetNodesCount() < m_k + 1) {
+                mc.removeEntry(expiredEntry);
+                if (mc.getEntriesCount() < m_k + 1) {
                     // DIAG ONLY -- DELETE
                     diagDiscardedMCCount ++;
 
                     // remove micro-cluster mc
                     try {
-                        RemoveMicroCluster(mc);
+                        removeMicroCluster(mc);
                     } catch (CorruptedDataStateException e) {
                         e.printStackTrace();
                     }
 
-                    // insert nodes of mc to set nodesReinsert
-                    nodesReinsert = new TreeSet<ISBNode>();
-                    for (ISBNode q : mc.nodes) {
-                        nodesReinsert.add(q);
+                    // insert entries of mc to set entriesReinsert
+                    entriesReinsert = new TreeSet<ISBEntry>();
+                    for (ISBEntry q : mc.entries) {
+                        entriesReinsert.add(q);
                     }
 
-                    // treat each node of mc as new node
-                    for (ISBNode q : mc.nodes) {
-                        q.InitNode();
-                        ProcessNewNode(q, false);
+                    // treat each entry of mc as new entry
+                    for (ISBEntry q : mc.entries) {
+                        q.initEntry();
+                        processNewEntry(q, false);
                     }
                 }
             } else {
-                // expiredNode belongs to set PD
-                // remove expiredNode from PD index
-                ISB_PD.Remove(expiredNode);
+                // expiredEntry belongs to set PD
+                // remove expiredEntry from PD index
+                ISB_PD.remove(expiredEntry);
             }
 
-            RemoveNode(expiredNode);
-            ProcessEventQueue(expiredNode);
+            removeEntry(expiredEntry);
+            ProcessEventQueue(expiredEntry);
         }
     }
 
@@ -384,15 +384,15 @@ public class ApproxMCOD extends MCODBase {
         if (windowElements.size() >= windowSize) {
             // If the window is full, perform a slide
             doSlide();
-            // Process expired nodes
-            ProcessExpiredNodes(GetExpiredNodes());
+            // Process expired entries
+            processExpiredEntries(getExpiredEntries());
         }
 
-        // Process new nodes
+        // Process new entries
         for (StreamObj streamObj : streamObjs) {
-            ISBNode nodeNew = new ISBNode(streamObj, objId); // create new ISB node
-            AddNode(nodeNew); // add nodeNew to window
-            ProcessNewNode(nodeNew, true);
+            ISBEntry newEntry = new ISBEntry(streamObj, objId); // create new ISB entry
+            addEntry(newEntry); // add newEntry to window
+            processNewEntry(newEntry, true);
 
             objId++; // update object identifier
         }
@@ -409,22 +409,22 @@ public class ApproxMCOD extends MCODBase {
 //        System.out.println("DIAG - #Safe inliers detected: " + diagSafeInliersCount);
         System.out.println("DIAG - Total -ACTIVE- MCs: " + setMC.size());
         System.out.println("DIAG - Total -ACTIVE- PD's Safe Inliers List Population: " + pdSafeInliers.size());
-        System.out.println("DIAG - Total -ACTIVE- PD List Population: " + ISB_PD.GetSize());
-        System.out.println("DIAG - TEMP OUTLIER SET SIZE: " + GetOutliersFound().size());
+        System.out.println("DIAG - Total -ACTIVE- PD List Population: " + ISB_PD.getSize());
+        System.out.println("DIAG - TEMP OUTLIER SET SIZE: " + getOutliersFound().size());
         System.out.println("DIAG - TEMP Window size is: " + windowElements.size());
         System.out.println("--------------------------------------------------------");
     }
 
-    private ArrayList<ISBNode> GetExpiredNodes() {
-        ArrayList<ISBNode> expiredNodes = new ArrayList<>();
-        for (ISBNode node : windowElements) {
-            // check if node has expired
-            if (node.id < windowStart) {
-                expiredNodes.add(node);
+    private ArrayList<ISBEntry> getExpiredEntries() {
+        ArrayList<ISBEntry> expiredEntries = new ArrayList<>();
+        for (ISBEntry entry : windowElements) {
+            // check if entry has expired
+            if (entry.id < windowStart) {
+                expiredEntries.add(entry);
             } else {
                 break;
             }
         }
-        return expiredNodes;
+        return expiredEntries;
     }
 }

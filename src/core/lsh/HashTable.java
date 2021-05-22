@@ -1,130 +1,123 @@
-/*
-*      _______                       _        ____ _     _
-*     |__   __|                     | |     / ____| |   | |
-*        | | __ _ _ __ ___  ___  ___| |    | (___ | |___| |
-*        | |/ _` | '__/ __|/ _ \/ __| |     \___ \|  ___  |
-*        | | (_| | |  \__ \ (_) \__ \ |____ ____) | |   | |
-*        |_|\__,_|_|  |___/\___/|___/_____/|_____/|_|   |_|
-*                                                         
-* -----------------------------------------------------------
-*
-*  TarsosLSH is developed by Joren Six.
-*  
-* -----------------------------------------------------------
-*
-*  Info    : http://0110.be/tag/TarsosLSH
-*  Github  : https://github.com/JorenSix/TarsosLSH
-*  Releases: http://0110.be/releases/TarsosLSH/
-* 
-*/
-
 package core.lsh;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import core.DataObj;
 
-import core.lsh.families.HashFamily;
-import core.lsh.families.HashFunction;
+import java.util.*;
 
-/**
- * An index contains one or more locality sensitive hash tables. These hash
- * tables contain the mapping between a combination of a number of hashes
- * (encoded using an integer) and a list of possible nearest neighbours.
- * 
- * @author Joren Six
- */
-class HashTable {
+public class HashTable<T extends DataObj<T>> {
+    private class HashBucket<T extends DataObj<T>> {
+        int k;
+        ArrayList<T> safeInliers;
+        ArrayList<T> bucketEntries;
+        Random randomGenerator;
 
-	/**
-	 * Contains the mapping between a combination of a number of hashes (encoded
-	 * using an integer) and a list of possible nearest neighbours
-	 */
-	private HashMap<String,List<Entry>> hashTable;
-	private HashFunction[] hashFunctions;
-	private HashFamily family;
-	
-	/**
-	 * Initialize a new hash table, it needs a hash family and a number of hash
-	 * functions that should be used.
-	 * 
-	 * @param numberOfHashes
-	 *            The number of hash functions that should be used.
-	 * @param family
-	 *            The hash function family knows how to create new hash
-	 *            functions, and is used therefore.
-	 */
-	public HashTable(int numberOfHashes,HashFamily family){
-		hashTable = new HashMap<>();
-		this.hashFunctions = new HashFunction[numberOfHashes];
-		for(int i=0;i<numberOfHashes;i++){
-			hashFunctions[i] = family.createHashFunction();
-		}
-		this.family = family;
-	}
+        public HashBucket(int k) {
+            this.k = k;
 
-	/**
-	 * Query the hash table for a vector. It calculates the hash for the vector,
-	 * and does a lookup in the hash table. If no candidates are found, an empty
-	 * list is returned, otherwise, the list of candidates is returned.
-	 * 
-	 * @param query
-	 *            The query vector.
-	 * @return Does a lookup in the table for a query using its hash. If no
-	 *         candidates are found, an empty list is returned, otherwise, the
-	 *         list of candidates is returned.
-	 */
-		public List<Entry> query(Entry query) {
-		String combinedHash = hash(query);
-		if(hashTable.containsKey(combinedHash))
-			return hashTable.get(combinedHash);
-		else
-			return new ArrayList<Entry>();
-	}
+            safeInliers = new ArrayList<>();
+            bucketEntries = new ArrayList<>();
+            randomGenerator = new Random();
+        }
 
-	/**
-	 * Add an entry to the index.
-	 * @param entry
-	 */
-	public void add(Entry entry) {
-		String combinedHash = hash(entry);
-		if(! hashTable.containsKey(combinedHash)){
-			hashTable.put(combinedHash, new ArrayList<Entry>());
-		}
-		hashTable.get(combinedHash).add(entry);
-	}
+        public void add(T newEntry) {
+            while (bucketEntries.size() > k && safeInliers.size() > 0) {
+                // Try to reduce bucket size by removing
+                // random safe inliers
+                int randomIndex = randomGenerator.nextInt(safeInliers.size());
+                T removedSafeInlier = safeInliers.remove(randomIndex);
+                bucketEntries.remove(removedSafeInlier);
+            }
 
-	/**
-	 * Remove an entry from the index.
-	 * @param entry
-	 */
-	public void remove(Entry entry) {
-		String combinedHash = hash(entry);
-		if(hashTable.containsKey(combinedHash)){
-			hashTable.remove(combinedHash, new ArrayList<Entry>());
-		}
-	}
-	
-	/**
-	 * Calculate the combined hash for a vector.
-	 * @param entry The vector to calculate the combined hash for.
-	 * @return An integer representing a combined hash.
-	 */
-	private String hash(Entry entry){
-		int hashes[] = new int[hashFunctions.length];
-		for(int i = 0 ; i < hashFunctions.length ; i++){
-			hashes[i] = hashFunctions[i].hash(entry);
-		}
-		String combinedHash = family.combine(hashes);
-		return combinedHash;
-	}
+            if (newEntry.count_after >= k) {
+                safeInliers.add(newEntry);
+            }
+            bucketEntries.add(newEntry);
+        }
 
-	/**
-	 * Return the number of hash functions used in the hash table.
-	 * @return The number of hash functions used in the hash table.
-	 */
-	public int getNumberOfHashes() {
-		return hashFunctions.length;
-	}
+        public void remove(T newEntry) {
+            safeInliers.remove(newEntry);
+            bucketEntries.remove(newEntry);
+        }
+
+        public ArrayList<T> getEntries() {
+            return bucketEntries;
+        }
+    }
+
+    private final HashMap<String, HashBucket<T>> hashTable;
+    private final int numHashes;
+    private final int k;
+    private final ArrayList<HashFunction<T>> hashFunctions;
+
+    public HashTable(int numHashes, int w, int dimensions, int k) {
+        this.numHashes = numHashes;
+        this.k = k;
+
+        hashTable = new HashMap<>();
+        // Generate the hash functions of the hash table
+        hashFunctions =  new ArrayList<>();
+        for (int i = 0; i < numHashes; i++) {
+            hashFunctions.add(new HashFunction<T>(dimensions, w));
+        }
+    }
+
+    public void add(T entry) {
+        String combinedHash = generateCombinedHash(entry);
+
+        if (hashTable.containsKey(combinedHash)) {
+            hashTable.get(combinedHash).add(entry);
+        } else {
+            HashBucket<T> newBucket = new HashBucket<>(k);
+            newBucket.add(entry);
+            hashTable.put(combinedHash, newBucket);
+        }
+    }
+
+    public void remove(T entry) {
+        String combinedHash = generateCombinedHash(entry);
+        hashTable.get(combinedHash).remove(entry);
+    }
+
+    public ArrayList<T> query(T entry) {
+        String combinedHash = generateCombinedHash(entry);
+
+        HashBucket<T> resultHashBucket = hashTable.get(combinedHash);
+        if (resultHashBucket == null) {
+            return new ArrayList<>();
+        } else {
+            return resultHashBucket.getEntries();
+        }
+    }
+
+    private String generateCombinedHash(T entry) {
+        int[] individualHashes = new int[numHashes];
+
+        for (int f = 0; f < numHashes; f++) {
+            individualHashes[f] = hashFunctions.get(f).hash(entry);
+        }
+
+        // Combine the individual hashes into one
+        return Arrays.toString(individualHashes);
+    }
+
+//    // Returns the total amount of entries stored in the Hash Table.
+//    public int getSize() {
+//        int sum = 0;
+//
+//        for (ArrayList<T> bucket : hashTable.values()) {
+//            sum += bucket.size();
+//        }
+//
+//        return sum;
+//    }
+//
+    public ArrayList<T> getAllEntries() {
+        ArrayList<T> allEntries = new ArrayList<>();
+
+        for (HashBucket<T> bucket : hashTable.values()) {
+            allEntries.addAll(bucket.getEntries());
+        }
+
+        return allEntries;
+    }
 }

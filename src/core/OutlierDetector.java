@@ -6,7 +6,7 @@ import java.util.TreeSet;
 import java.util.Vector;
 
 
-public class OutlierDetector<T extends DataObj<?>> {
+public class OutlierDetector<T extends DataObj<T>> {
     protected static final Long FIRST_OBJ_ID = 1L;
 
     // ID indicating the window's starting object
@@ -32,7 +32,7 @@ public class OutlierDetector<T extends DataObj<?>> {
 
     }
 
-    protected boolean IsElemInWindow(long id) {
+    protected boolean isElemInWindow(long id) {
         Long start = windowStart;
         if ( (start <= id) && (id <= windowEnd) )
             return true;
@@ -57,7 +57,7 @@ public class OutlierDetector<T extends DataObj<?>> {
         outliersFound.add(newOutlier);
     }
 
-    public Set<Outlier<T>> GetOutliersFound() {
+    public Set<Outlier<T>> getOutliersFound() {
         return outliersFound;
     }
 

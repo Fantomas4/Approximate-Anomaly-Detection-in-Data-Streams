@@ -22,31 +22,31 @@ package core.mcodbase;
 
 
 import core.mtree.DistanceFunctions;
-import core.mcodbase.ISBIndex.ISBNode;
+import core.mcodbase.ISBIndex.ISBEntry;
 import java.util.ArrayList;
 
 public class MicroCluster implements DistanceFunctions.EuclideanCoordinate, Comparable<MicroCluster> {
-    public ISBNode mcc;
-    public ArrayList<ISBNode> nodes;
+    public ISBEntry mcc;
+    public ArrayList<ISBEntry> entries;
 
-    public MicroCluster(ISBNode mcc) {
+    public MicroCluster(ISBEntry mcc) {
         this.mcc = mcc;
-        nodes = new ArrayList<ISBNode>();
-        AddNode(mcc);
+        entries = new ArrayList<>();
+        addEntry(mcc);
     }
     
-    public void AddNode(ISBNode node) {
-        if (node != null)
-            nodes.add(node);
+    public void addEntry(ISBEntry entry) {
+        if (entry != null)
+            entries.add(entry);
     }
     
-    public void RemoveNode(ISBNode node) {
-        if (node != null)
-            nodes.remove(node);
+    public void removeEntry(ISBEntry entry) {
+        if (entry != null)
+            entries.remove(entry);
     }
     
-    public int GetNodesCount() {
-        return nodes.size();
+    public int getEntriesCount() {
+        return entries.size();
     }
 
     @Override
