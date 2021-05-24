@@ -122,7 +122,7 @@ public class LSHOD extends OutlierDetector<Entry> {
         return entry.id + windowSize + 1;
     }
 
-    protected int getNodeSlide(Entry entry) {
+    protected int getEntrySlide(Entry entry) {
         // Since node IDs begin from 1, we subtract 1 from the id so that the integer division
         // operation always returns the correct slide the node belongs to.
         long adjustedID = entry.id - 1;
@@ -141,7 +141,7 @@ public class LSHOD extends OutlierDetector<Entry> {
         return entry.count_after >= m_k;
     }
 
-    protected void addNode(Entry entry) {
+    protected void addEntry(Entry entry) {
         windowElements.add(entry);
     }
 
@@ -193,7 +193,7 @@ public class LSHOD extends OutlierDetector<Entry> {
             return;
         }
 
-        if (getNodeSlide(q) >= getNodeSlide(entry)) {
+        if (getEntrySlide(q) >= getEntrySlide(entry)) {
             entry.count_after ++;
         } else {
             entry.addPrecNeigh(q);
@@ -281,7 +281,7 @@ public class LSHOD extends OutlierDetector<Entry> {
         }
     }
 
-    void processExpiredNodes(ArrayList<Entry> expiredEntries) {
+    void processExpiredEntries(ArrayList<Entry> expiredEntries) {
         for (Entry expiredEntry : expiredEntries) {
             // Remove expiredEntry from LSH Index
             lshIndex.remove(expiredEntry);
@@ -296,13 +296,13 @@ public class LSHOD extends OutlierDetector<Entry> {
             // If the window is full, perform a slide
             doSlide();
             // Process expired nodes
-            processExpiredNodes(getExpiredEntries());
+            processExpiredEntries(getExpiredEntries());
         }
 
         // Process new nodes
         for (StreamObj streamObj : streamObjs) {
             Entry entryNew = new Entry(objId, streamObj.getValues(), streamObj); // create new ISB node
-            addNode(entryNew); // add nodeNew to window
+            addEntry(entryNew); // add nodeNew to window
             processNewEntry(entryNew);
 
             objId++; // update object identifier
