@@ -103,7 +103,7 @@ public class ApproxMCOD extends MCODBase {
         }
     }
 
-    void processNewEntry(ISBEntry newEntry, boolean isNewEntry) {
+    void processEntry(ISBEntry newEntry, boolean isNewEntry) {
         // Perform 3R/2 range query to cluster centers w.r.t new entry
         Vector<SearchResultMC> resultsMC;
         // results are sorted ascenting by distance
@@ -304,6 +304,11 @@ public class ApproxMCOD extends MCODBase {
                 }
             }
         }
+
+        // If newEntry is a safe inlier, increment the statistics' safe inlier counter
+        if (isNewEntry && isSafeInlier(newEntry)) {
+            m_nSafeInliers ++;
+        }
     }
 
     void ProcessEventQueue(ISBEntry entryExpired) {
@@ -366,7 +371,7 @@ public class ApproxMCOD extends MCODBase {
                     // treat each entry of mc as new entry
                     for (ISBEntry q : mc.entries) {
                         q.initEntry();
-                        processNewEntry(q, false);
+                        processEntry(q, false);
                     }
                 }
             } else {
@@ -392,7 +397,7 @@ public class ApproxMCOD extends MCODBase {
         for (StreamObj streamObj : streamObjs) {
             ISBEntry newEntry = new ISBEntry(streamObj, objId); // create new ISB entry
             addEntry(newEntry); // add newEntry to window
-            processNewEntry(newEntry, true);
+            processEntry(newEntry, true);
 
             objId++; // update object identifier
         }
@@ -403,10 +408,8 @@ public class ApproxMCOD extends MCODBase {
         System.out.println("DIAG - Current stream object: " + (objId - 1));
         System.out.println("DIAG - Total Exact MCs count: " + diagExactMCCount);
         System.out.println("DIAG - Total Discarded MCs: " + diagDiscardedMCCount);
-//        System.out.println("DIAG - #Times an MC was sustained: " + diagSustainedMCCount);
         System.out.println("DIAG - #Times a point was added to an MC: " + diagAdditionsToMC);
         System.out.println("DIAG - #Times a point was added to PD: " + diagAdditionsToPD);
-//        System.out.println("DIAG - #Safe inliers detected: " + diagSafeInliersCount);
         System.out.println("DIAG - Total -ACTIVE- MCs: " + setMC.size());
         System.out.println("DIAG - Total -ACTIVE- PD's Safe Inliers List Population: " + pdSafeInliers.size());
         System.out.println("DIAG - Total -ACTIVE- PD List Population: " + ISB_PD.getSize());

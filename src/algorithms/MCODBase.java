@@ -95,6 +95,7 @@ public class MCODBase extends OutlierDetector<ISBEntry> {
     protected double m_theta = 1.0;
 
     // statistics
+    public int m_nSafeInliers;
     public int m_nBothInlierOutlier;
     public int m_nOnlyInlier;
     public int m_nOnlyOutlier;
@@ -116,6 +117,7 @@ public class MCODBase extends OutlierDetector<ISBEntry> {
         eventQueue = new EventQueue();
 
         // init statistics
+        m_nSafeInliers = 0;
         m_nBothInlierOutlier = 0;
         m_nOnlyInlier = 0;
         m_nOnlyOutlier = 0;
@@ -223,6 +225,7 @@ public class MCODBase extends OutlierDetector<ISBEntry> {
         results.put("nOnlyInlier", nOnlyInlier);
         results.put("nOnlyOutlier", nOnlyOutlier);
         results.put("nRangeQueriesExecuted", nRangeQueriesExecuted);
+        results.put("nSafeInliers", m_nSafeInliers);
         return results;
     }
 

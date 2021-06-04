@@ -1,6 +1,6 @@
+import algorithms.ApproxLSHOD;
 import algorithms.ApproxMCLSHOD;
 import algorithms.ApproxMCOD;
-import algorithms.LSHOD;
 import algorithms.MCOD;
 import core.DataObj;
 import core.Outlier;
@@ -36,7 +36,7 @@ public class Executor {
 
     private MCOD mcodObj;
     private ApproxMCOD approxMCODObj;
-    private LSHOD lshodObj;
+    private ApproxLSHOD approxLSHODObj;
     private ApproxMCLSHOD approxMCLSHODObj;
 
 
@@ -99,9 +99,9 @@ public class Executor {
             mcodObj = new MCOD(windowSize, slideSize, rParameter, kParameter);
         } else if (chosenAlgorithm.equals("ApproxMCOD")) {
             approxMCODObj = new ApproxMCOD(windowSize, slideSize, rParameter, kParameter, pdLimit, arFactor);
-        } else if (chosenAlgorithm.equals("LSHOD")) {
+        } else if (chosenAlgorithm.equals("ApproxLSHOD")) {
             int dataDimensions = stream.getStreamDataDimensions();
-            lshodObj = new LSHOD(windowSize, slideSize, rParameter, kParameter,
+            approxLSHODObj = new ApproxLSHOD(windowSize, slideSize, rParameter, kParameter,
                     dataDimensions, 4, 10, (int)rParameter);
         } else if (chosenAlgorithm.equals("ApproxMCLSHOD")) {
             int dataDimensions = stream.getStreamDataDimensions();
@@ -119,8 +119,8 @@ public class Executor {
             mcodObj.evaluateRemainingElemsInWin();
         } else if (chosenAlgorithm.equals("ApproxMCOD")) {
             approxMCODObj.evaluateRemainingElemsInWin();
-        } else if (chosenAlgorithm.equals("LSHOD")) {
-            lshodObj.evaluateRemainingElemsInWin();
+        } else if (chosenAlgorithm.equals("ApproxLSHOD")) {
+            approxLSHODObj.evaluateRemainingElemsInWin();
         } else if (chosenAlgorithm.equals("ApproxMCLSHOD")) {
             approxMCLSHODObj.evaluateRemainingElemsInWin();
         }
@@ -129,8 +129,8 @@ public class Executor {
             exportOutliersToFile(mcodObj.getOutliersFound(), outliersFile);
         } else if (chosenAlgorithm.equals("ApproxMCOD")) {
             exportOutliersToFile(approxMCODObj.getOutliersFound(), outliersFile);
-        } else if (chosenAlgorithm.equals("LSHOD")) {
-            exportOutliersToFile(lshodObj.getOutliersFound(), outliersFile);
+        } else if (chosenAlgorithm.equals("ApproxLSHOD")) {
+            exportOutliersToFile(approxLSHODObj.getOutliersFound(), outliersFile);
         } else if (chosenAlgorithm.equals("ApproxMCLSHOD")) {
             exportOutliersToFile(approxMCLSHODObj.getOutliersFound(), outliersFile);
         }
@@ -171,10 +171,10 @@ public class Executor {
                 // init
                 m_timePreObjSum = 0L;
             }
-        } else if (chosenAlgorithm.equals("LSHOD")) {
+        } else if (chosenAlgorithm.equals("ApproxLSHOD")) {
             nsNow = System.nanoTime();
 
-            lshodObj.processNewStreamObjects(stream.getIncomingData(slideSize));
+            approxLSHODObj.processNewStreamObjects(stream.getIncomingData(slideSize));
 
             updateMaxMemUsage();
             nTotalRunTime += (System.nanoTime() - nsNow) / (1024 * 1024);
@@ -227,8 +227,8 @@ public class Executor {
             results = mcodObj.getResults();
         } else if (chosenAlgorithm.equals("ApproxMCOD")) {
             results = approxMCODObj.getResults();
-        } else if (chosenAlgorithm.equals("LSHOD")) {
-            results = lshodObj.getResults();
+        } else if (chosenAlgorithm.equals("ApproxLSHOD")) {
+            results = approxLSHODObj.getResults();
         } else if (chosenAlgorithm.equals("ApproxMCLSHOD")) {
             results = approxMCLSHODObj.getResults();
         }
@@ -243,6 +243,7 @@ public class Executor {
         int nOnlyInlier = results.get("nOnlyInlier");
         int nOnlyOutlier = results.get("nOnlyOutlier");
         int nRangeQueriesExecuted = results.get("nRangeQueriesExecuted");
+        int nSafeInliers = results.get("nSafeInliers");
 
         System.out.println("Statistics:\n\n");
         int sum = nBothInlierOutlier + nOnlyInlier + nOnlyOutlier;
@@ -250,6 +251,7 @@ public class Executor {
             System.out.println(String.format("  Nodes always inlier: %d (%.1f%%)\n", nOnlyInlier, (100 * nOnlyInlier) / (double)sum));
             System.out.println(String.format("  Nodes always outlier: %d (%.1f%%)\n", nOnlyOutlier, (100 * nOnlyOutlier) / (double)sum));
             System.out.println(String.format("  Nodes both inlier and outlier: %d (%.1f%%)\n", nBothInlierOutlier, (100 * nBothInlierOutlier) / (double)sum));
+            System.out.println(String.format("  Nodes classified as safe inliers: %d (%.1f%%)\n", nSafeInliers, (100 * nSafeInliers) / (double)sum));
 
             System.out.println("  (Sum: " + sum + ")\n");
         }

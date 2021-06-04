@@ -8,7 +8,7 @@ import core.lsh.LSHIndex;
 import java.util.*;
 
 
-public class LSHOD extends OutlierDetector<Entry> {
+public class ApproxLSHOD extends OutlierDetector<Entry> {
 
     protected static class EventItem implements Comparable<EventItem> {
         public Entry entry;
@@ -78,11 +78,12 @@ public class LSHOD extends OutlierDetector<Entry> {
     protected double m_theta = 1.0;
 
     // statistics
+    public int m_nSafeInliers;
     public int m_nBothInlierOutlier;
     public int m_nOnlyInlier;
     public int m_nOnlyOutlier;
 
-    public LSHOD(int windowSize, int slideSize,  double radius, int k, int dimensions, int numberOfHashes, int numberOfHashTables, int w) {
+    public ApproxLSHOD(int windowSize, int slideSize, double radius, int k, int dimensions, int numberOfHashes, int numberOfHashTables, int w) {
         super(windowSize, slideSize);
 
         m_radius = radius;
@@ -97,6 +98,7 @@ public class LSHOD extends OutlierDetector<Entry> {
         eventQueue = new EventQueue();
 
         // init statistics
+        m_nSafeInliers = 0;
         m_nBothInlierOutlier = 0;
         m_nOnlyInlier = 0;
         m_nOnlyOutlier = 0;
@@ -184,6 +186,7 @@ public class LSHOD extends OutlierDetector<Entry> {
         results.put("nOnlyInlier", nOnlyInlier);
         results.put("nOnlyOutlier", nOnlyOutlier);
         results.put("nRangeQueriesExecuted", nRangeQueriesExecuted);
+        results.put("nSafeInliers", m_nSafeInliers);
         return results;
     }
 
@@ -220,35 +223,40 @@ public class LSHOD extends OutlierDetector<Entry> {
         }
     }
 
-    void processNewEntry(Entry entryNew) {
-        // Perform R range query in LSH Index to find the points relatively close to entryNew.
-        List<Entry> resultEntries = lshIndex.query(entryNew);
+    void processNewEntry(Entry newEntry) {
+        // Perform R range query in LSH Index to find the points relatively close to newEntry.
+        List<Entry> resultEntries = lshIndex.query(newEntry);
         nRangeQueriesExecuted ++;
 
         for (Entry resultEntry : resultEntries) {
-            // Add the neighbors found by the range query to entryNew
-            addNeighbor(entryNew, resultEntry, false);
+            // Add the neighbors found by the range query to newEntry
+            addNeighbor(newEntry, resultEntry, false);
 
-            // Update new entryNew's neighbors by adding entryNew to them
-            addNeighbor(resultEntry, entryNew, true);
+            // Update new newEntry's neighbors by adding newEntry to them
+            addNeighbor(resultEntry, newEntry, true);
         }
 
-        // Add entryNew to the LSH Index
-        lshIndex.insert(entryNew);
+        // Add newEntry to the LSH Index
+        lshIndex.insert(newEntry);
 
         // Check if nodeNew is an inlier or outlier
-        int count = entryNew.countPrecNeighs(windowStart) + entryNew.count_after;
+        int count = newEntry.countPrecNeighs(windowStart) + newEntry.count_after;
         if (count >= m_k) {
             // nodeNew is an inlier
-            setNodeType(entryNew, Entry.EntryType.INLIER);
+            setNodeType(newEntry, Entry.EntryType.INLIER);
             // If nodeNew is an unsafe inlier, insert it to the event queue
-            if (!isSafeInlier(entryNew)) {
-                Entry entryMinExp = entryNew.getMinPrecNeigh(windowStart);
-                addToEventQueue(entryNew, entryMinExp);
+            if (!isSafeInlier(newEntry)) {
+                Entry entryMinExp = newEntry.getMinPrecNeigh(windowStart);
+                addToEventQueue(newEntry, entryMinExp);
             }
         } else {
             // nodeNew is an outlier
-            setNodeType(entryNew, Entry.EntryType.OUTLIER);
+            setNodeType(newEntry, Entry.EntryType.OUTLIER);
+        }
+
+        // If newEntry is a safe inlier, increment the statistics' safe inlier counter
+        if (isSafeInlier(newEntry)) {
+            m_nSafeInliers ++;
         }
     }
 
@@ -310,7 +318,7 @@ public class LSHOD extends OutlierDetector<Entry> {
 
 
         // DIAG ONLY -- DELETE
-        System.out.println("------------------------ LSHOD ------------------------");
+        System.out.println("------------------------ ApproxLSHOD ------------------------");
         System.out.println("DIAG - Current stream object: " + (objId - 1));
         System.out.println("DIAG - TEMP OUTLIER SET SIZE: " + getOutliersFound().size());
         System.out.println("DIAG - TEMP Window size is: " + windowElements.size());

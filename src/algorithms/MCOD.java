@@ -79,7 +79,7 @@ public class MCOD extends MCODBase {
         }
     }
 
-    void processNewEntry(ISBEntry newEntry, boolean isNewEntry) {
+    void processEntry(ISBEntry newEntry, boolean isNewEntry) {
         // Perform 3R/2 range query to cluster centers w.r.t new entry
         Vector<SearchResultMC> resultsMC;
         // results are sorted ascenting by distance
@@ -223,6 +223,11 @@ public class MCOD extends MCODBase {
                 }
             }
         }
+
+        // If newEntry is a safe inlier, increment the statistics' safe inlier counter
+        if (isNewEntry && isSafeInlier(newEntry)) {
+            m_nSafeInliers ++;
+        }
     }
 
     void processEventQueue(ISBEntry expiredEntry) {
@@ -285,7 +290,7 @@ public class MCOD extends MCODBase {
                     // treat each entry of mc as new entry
                     for (ISBEntry q : mc.entries) {
                         q.initEntry();
-                        processNewEntry(q, false);
+                        processEntry(q, false);
                     }
                 }
             } else {
@@ -311,7 +316,7 @@ public class MCOD extends MCODBase {
         for (StreamObj streamObj : streamObjs) {
             ISBEntry newEntry = new ISBEntry(streamObj, objId); // create new ISB entry
             addEntry(newEntry); // add newEntry to window
-            processNewEntry(newEntry, true);
+            processEntry(newEntry, true);
 
             objId++; // update object identifier
         }
