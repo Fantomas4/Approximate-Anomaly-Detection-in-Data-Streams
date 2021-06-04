@@ -102,7 +102,7 @@ public class Executor {
         } else if (chosenAlgorithm.equals("LSHOD")) {
             int dataDimensions = stream.getStreamDataDimensions();
             lshodObj = new LSHOD(windowSize, slideSize, rParameter, kParameter,
-                    dataDimensions, 4, 10, (int)rParameter);
+                    dataDimensions, 2, 8, (int)rParameter);
         } else if (chosenAlgorithm.equals("ApproxMCLSHOD")) {
             int dataDimensions = stream.getStreamDataDimensions();
             approxMCLSHODObj = new ApproxMCLSHOD(windowSize, slideSize, rParameter, kParameter,
